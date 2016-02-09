@@ -18,10 +18,9 @@ currency = 'points'
 from choice_task import ChoiceTask
 import pygame
 from pygame.locals import *
-from advanced_slot_functions import *
+from cstcg_slot_functions import *
 import random
 import numpy as np
-import slot_buttons
 from scipy.io import savemat
 
 # Define special characters
@@ -52,8 +51,7 @@ c = ChoiceTask(background_color=DARK_GRAY,
     header = pygame.font.Font('./fonts/Oswald-Bold.ttf', 40),
     instruction = pygame.font.Font('./fonts/GenBasR.ttf',30),
     choice_text = pygame.font.Font('./fonts/GenBasR.ttf', 30),
-    button = pygame.font.Font('./fonts/Oswald-Bold.ttf',30),
-    RTB = response_box)
+    button = pygame.font.Font('./fonts/Oswald-Bold.ttf',30))
 
 (subjectname) = c.subject_information_screen()
 subject = subjectname.replace(" ","")
@@ -63,16 +61,8 @@ matlab_output_file = c.create_output_file(subjectname)
 
 # Pull in probability trace:
 # Probability trace will have win/loss/near miss
-with open ('taskBackend_test.txt','r') as f:
+with open ('taskBackend.txt','r') as f:
     probability_trace = f.read().replace('\n', '')
-
-# Result sequence has the following positions:
-# 0. reward grade
-# 1. fruit 1
-# 2. fruit 2
-# 3. fruit 3
-# 4. gamble or not
-# 5. outcome of gamble
 
 result_sequence = probability_trace.split(',')
 
@@ -116,6 +106,7 @@ for trial in range(NUM_TRIALS):
     task['bet_sequence'] = []
     task['trial'] = trial
     task['machine_sequence'][trial] = task['machine']
+    task['trial_stage'] = 'guess'
     if trial > 0:
         task['account'][trial] = task['account'][trial-1] 
 
@@ -133,7 +124,7 @@ for trial in range(NUM_TRIALS):
         savemat(matlab_output_file,task)
         c.exit_screen("Unfortunately you lost your money and the game is over! Thanks for playing!", font=c.title, font_color=GOLD)
 
-    task['trial_stage'] = 'bet'
+  
     buttons, task = draw_screen(c, positions, buttons, sizes, task)
 
     while not next_trial:  

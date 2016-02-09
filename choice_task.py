@@ -7,7 +7,7 @@
 
 # Import libraries
 import pygame, os, time, string
-from pygbutton import PygButton as TaskButton
+from cstcg_buttons import CSTCGButton as TaskButton
 from pygame.locals import *
 import numpy
 import random 
@@ -18,7 +18,7 @@ from time import strftime,localtime
 from pygame import gfxdraw
 
 class ChoiceTask():
-
+    print "I'm here"
     # Define a full-screen display for the paradigm
     screen = pygame.display.set_mode((pygame.display.Info().current_w,pygame.display.Info().current_h))
     screen_width = screen.get_width()
@@ -36,8 +36,6 @@ class ChoiceTask():
     center_y = screen_height/2
     bottom_y = 2*screen_height/3
     banner_y = screen_height/6
-
-   
 
     def __init__(self, **kwds):
     
@@ -77,7 +75,7 @@ class ChoiceTask():
         self.press_sound.set_volume(0.2)
         self.game_over_sound = pygame.mixer.Sound('./sounds/gameover.wav')
 
-        self.RTB = False
+        self.RTB = True
 
         self.__dict__.update(kwds)
 
@@ -339,9 +337,6 @@ class ChoiceTask():
             left_button = TaskButton(rect=(self.center_x-70,self.bottom_y+70, 140,70),\
              caption=button_txt2,  fgcolor=self.background_color, bgcolor=self.button_color, font=self.button)
             left_button.draw(self.screen)
-
-
-       
 
         pygame.display.update()
         self.of.write('ChoiceScreen on ' + repr(time.time()) + '\n')

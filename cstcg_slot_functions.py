@@ -5,7 +5,7 @@ from pygame import gfxdraw
 import math
 import numpy
 import random
-from slot_buttons import SlotButton
+from cstcg_buttons import CSTCGButton as SlotButton
 from time import strftime,localtime
 import time
 
@@ -120,9 +120,10 @@ def process_rtb(index, stage):
         if index == 1:
             event1.pos = (810, 675)
         elif index == 2:
-            
+            event1.pos = (1010, 675)
+        elif index == 4:
+            event1.pos = (1210, 675)
 
-        print "Pull"
         # This will be the three hold buttons
 
     event2.pos = event1.pos       
@@ -239,51 +240,12 @@ def get_screen_elements(c, task):
     c.screen.fill(c.background_color)
 
     # Set up buttons
-    buttons = {}
+    
+    buttons = make_buttons(c,positions,sizes,task,'guess')
+        # buttons['change_casino'] = SlotButton(rect=(c.right_x+170, c.bottom_y+70,sizes['bbw'],sizes['bbh']),\
+        # caption="Cashout", fgcolor=GREEN, bgcolor=c.background_color, font=c.button)
 
-    if language == 'English':
-        buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
-        caption="Bet +5", fgcolor=c.background_color, bgcolor=BLUE, font=c.button,highlight=YELLOW)
-       
-        buttons['add_ten']= SlotButton(rect=(positions['bet_10_x'],positions['bet_10_y'], sizes['sbw'],sizes['sbh']),\
-        caption="Bet +10", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
-
-        buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],sizes['sbh']),\
-        caption="Pull", fgcolor=c.background_color, bgcolor=PURPLE, font=c.header)
-
-        buttons['cashout'] = SlotButton(rect=(positions['cashout_x'],positions['cashout_y'], sizes['bbw']+35,sizes['xsbh']),\
-            caption="Cashout", fgcolor=c.background_color, bgcolor=WHITE, font=c.button)
-
-        if task['wheel_hold_buttons']:
-            buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],sizes['sbh']),\
-            caption="Pull", fgcolor=c.background_color, bgcolor=PURPLE, font=c.header)
-
-            buttons['clear'] = SlotButton(rect=(positions['clear_x'],positions['clear_y'], sizes['mbw'],sizes['sbh']),\
-            caption="Clear", fgcolor=c.background_color, bgcolor=BRIGHT_ORANGE, font=c.header)
-        else:
-            buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],1.42*sizes['sbh']),\
-            caption="Pull", fgcolor=c.background_color, bgcolor=PURPLE, font=c.header)
-
-            buttons['stop'] = SlotButton(rect=(positions['pull_x'],positions['stop_y']+40, sizes['mbw'],1.42*sizes['sbh']),\
-            caption="Stop", fgcolor=c.background_color, bgcolor=RED, font=c.header)
-
-            buttons['clear'] = SlotButton(rect=(positions['bet_5_x'],positions['clear_y'], sizes['sbw']+(positions['bet_10_x']-positions['bet_5_x']),sizes['xsbh']),\
-            caption="Clear", fgcolor=c.background_color, bgcolor=BRIGHT_ORANGE, font=c.button)
-
-        if task['wheel_hold_buttons']:
-            buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
-
-            buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
-            
-            buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
-       
-        buttons['change_casino'] = SlotButton(rect=(c.right_x+170, c.bottom_y+70,sizes['bbw'],sizes['bbh']),\
-        caption="Cashout", fgcolor=GREEN, bgcolor=c.background_color, font=c.button)
-
-        return positions, buttons, sizes
+    return positions, buttons, sizes
 
 def display_assets(c,positions,sizes,task):
 
@@ -311,9 +273,59 @@ def display_assets(c,positions,sizes,task):
     #grey_out(c,task)
     pygame.display.update()
 
+
+def make_buttons(c,positions,sizes,task,trial_stage):
+    buttons = {}
+    if trial_stage == 'guess' or trial_stage == 'pull': 
+        buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
+        caption="Bet +5", fgcolor=c.background_color, bgcolor=GRAY, font=c.button,highlight=YELLOW)
+       
+        buttons['add_ten']= SlotButton(rect=(positions['bet_10_x'],positions['bet_10_y'], sizes['sbw'],sizes['sbh']),\
+        caption="Bet +10", fgcolor=c.background_color, bgcolor=GRAY, font=c.button)
+
+        buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],sizes['sbh']),\
+        caption="Spin", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
+
+        buttons['clear'] = SlotButton(rect=(positions['clear_x'],positions['clear_y'], sizes['mbw'],sizes['sbh']),\
+        caption="Clear", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
+
+        buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+
+        buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+        
+        buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+
+    elif trial_stage == 'bet' or trial_stage == 'clear':
+        buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
+        caption="Bet +5", fgcolor=c.background_color, bgcolor=BLUE, font=c.button,highlight=YELLOW)
+       
+        buttons['add_ten']= SlotButton(rect=(positions['bet_10_x'],positions['bet_10_y'], sizes['sbw'],sizes['sbh']),\
+        caption="Bet +10", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
+
+        buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],sizes['sbh']),\
+        caption="Spin", fgcolor=c.background_color, bgcolor=PURPLE, font=c.header)
+
+        buttons['clear'] = SlotButton(rect=(positions['clear_x'],positions['clear_y'], sizes['mbw'],sizes['sbh']),\
+        caption="Clear", fgcolor=c.background_color, bgcolor=BRIGHT_ORANGE, font=c.header)
+
+        buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+
+        buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+        
+        buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+    return buttons
+
 def draw_screen(c, positions, buttons, sizes, task):
 
     c.screen.fill(c.background_color)
+    buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
+
     all_machines = [1,2,3,4]
     all_machines.remove(task['machine'])
 
@@ -323,6 +335,7 @@ def draw_screen(c, positions, buttons, sizes, task):
             highlight='./images/slot_machines_' + str(element+8) + '.png', 
             pos1=positions['mini_machine']['x'], pos2=positions['mini_machine']['y' + str(num)])
 
+  
     for key in buttons:
         buttons[key].draw(c.screen)
 

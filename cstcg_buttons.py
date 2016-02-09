@@ -13,7 +13,7 @@ GRAY      = (128, 128, 128)
 LIGHTGRAY = (212, 208, 200)
 TEAL      = ( 58, 138, 112)
 
-class SlotButton(object):
+class CSTCGButton(object):
     def __init__(self, rect=None, caption='', bgcolor=LIGHTGRAY, fgcolor=WHITE, font=None, normal=None, down=None, highlight=None, pos1=None, pos2=None):
         """Create a new button object. Parameters:
             rect - The size and position of the button as a pygame.Rect object
@@ -161,10 +161,7 @@ class SlotButton(object):
                 surfaceObj.blit(self.surfaceHighlight, self._rect)
             else:
                 surfaceObj.blit(self.surfaceNormal, self._rect)
-
-    def greyout(self):
-        
-
+                
     def _update(self):
         """Redraw the button's Surface object. Call this method when the button has changed appearance."""
         if self.customSurfaces:
