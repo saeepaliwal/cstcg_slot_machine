@@ -1,0 +1,1 @@
+Advanced slot machine with paylines, continuous bets, more different machines, and full screen for all information on one plane.
