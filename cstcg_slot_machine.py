@@ -76,6 +76,7 @@ task = {'bet_size': np.zeros(NUM_TRIALS).astype('int'),
         'reward_grade': np.zeros(NUM_TRIALS).astype('int'),
         'winloss': np.zeros(NUM_TRIALS).astype('int'),
         'pressed_stop': np.zeros(NUM_TRIALS).astype('int'),
+        'guess_trace': np.zeros(NUM_TRIALS).astype('int'),
         }
 
 # Start with initial account and machine
@@ -94,11 +95,10 @@ positions, buttons, sizes = get_screen_elements(c, task)
 
 for trial in range(NUM_TRIALS):    
 
-    print trial
     next_trial = False
     if trial < 5:
         if trial == 0:
-            print "Yay"
+            print "Training here"
             #begin_training_screen(c)
             #background_music.play(100,0)
 
@@ -106,7 +106,11 @@ for trial in range(NUM_TRIALS):
     task['bet_sequence'] = []
     task['trial'] = trial
     task['machine_sequence'][trial] = task['machine']
+
+    # Set stage and selector
     task['trial_stage'] = 'guess'
+    selector_pos = 1
+
     if trial > 0:
         task['account'][trial] = task['account'][trial-1] 
 
@@ -126,21 +130,33 @@ for trial in range(NUM_TRIALS):
 
   
     buttons, task = draw_screen(c, positions, buttons, sizes, task)
+    selector_pos, selected = selector(c,task,0,selector_pos)
+    eeg_trigger()
 
     while not next_trial:  
         pygame.time.wait(20)
+        
+        key_press = RTB.read() 
+        if len(key_press):
+            key_index = ord(key_press)
 
-        if response_box:
-            key_press = RTB.read() 
-            if len(key_press):
-                events = process_rtb(ord(key_press), task['trial_stage'])
+            if task['trial_stage'] == 'guess':
+                selected = False
+                draw_screen(c, positions, buttons, sizes, task)
+                selector_pos, selected = selector(c,task,key_index,selector_pos)
+                if selected:              
+                    task['guess_trace'][trial] = selector_pos
+                    task['trial_stage'] = 'bet'
+                    buttons, task = draw_screen(c, positions, buttons, sizes, task)
+            elif task['trial_stage'] != 'guess':
+                events = process_rtb(key_index, task['trial_stage'])
                 pygame.event.post(events[0])
                 pygame.event.post(events[1])
 
-        for event in pygame.event.get():
-            if event.type in (MOUSEBUTTONUP, MOUSEBUTTONDOWN):
-                # Handle bet behavior 
-                if task['trial_stage'] == 'bet':
+            for event in pygame.event.get():
+                if event.type in (MOUSEBUTTONUP, MOUSEBUTTONDOWN):
+                    # Handle bet behavior 
+                    # if task['trial_stage'] == 'bet' or task['trial_stage'] == 'pull':
                     if 'click' in buttons['add_five'].handleEvent(event):  
                         c.press_sound.play()
                         task['trial_stage'] = 'bet'
@@ -166,8 +182,9 @@ for trial in range(NUM_TRIALS):
                             task = update_account(c,positions, sizes, task)
                             display_assets(c,positions,sizes,task)
                     elif 'click' in buttons['pull'].handleEvent(event):
-                        print event.pos
                         if task['bet_size'][trial] > 0:
+                            task['trial_stage'] = 'pull'
+                            buttons, task = draw_screen(c, positions, buttons, sizes, task)
                             buttons['pull'].draw(c.screen)
                             pygame.display.update()
                             leversound.play()
@@ -177,69 +194,23 @@ for trial in range(NUM_TRIALS):
                             c.log('Summary Trial' + str(trial) + ': Bet:' + str(task['bet_size'][trial]) + 'Account: ' + str([task['account'][trial]]))
                             task['trial_stage'] = 'result'
 
-                            if task['wheel_hold_buttons']:
-                                individual_wheel_spin(c,positions,buttons,task)
-                            else:
-                                spin_wheels(c, positions, buttons, task)
-                                show_result(c,positions,buttons,task)
+                            # if task['wheel_hold_buttons']:
+                            individual_wheel_spin(c,positions,buttons,task)
+                            # else:
+                            #     spin_wheels(c, positions, buttons, task)
+                            #     show_result(c,positions,buttons,task)
                             
                             task = process_result(c,positions,buttons,sizes,task)  
                             next_trial = True
-                # elif 'click' in buttons['cashout'].handleEvent(event) and trial > 4:
-                #     print("Cashing out!")
-                #     c.log('Deciding to cash out ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
-                #     c.press_sound.play()
-                #     background_music.stop()
-                #     c.log('Trial ' + str(trial) + ': Cashing out ' + repr(time.time()) + '\n')
-                #     cashout(c, positions, buttons, sizes, task)
-                #     draw_screen(c, positions, buttons, sizes, task)     
-                #     background_music.play(100,0)
+                elif event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
 
-                # Handle machine changes   
-                # elif 'click' in buttons['mini_machine_0'].handleEvent(event):
-                #     print event.pos
-                #     c.press_sound.play()
-                #     background_music.stop()
-                #     task['trial_stage'] = 'change_machine'
-                #     task['machine'] = task['all_machines'][0]
-                #     task['machine_sequence'][trial] = task['machine']
-                #     background_music = pygame.mixer.Sound('./sounds/machine' + str(task['machine']) + '_music.wav')
-                #     background_music.set_volume(0.2)
-                #     buttons, task = draw_screen(c, positions, buttons, sizes, task)
-                #     background_music.play(100,0)
-                #     c.log('Trial ' + str(trial) + ': Changing machines to machine ' + str(task['machine_sequence'][trial]) + ' at ' + repr(time.time()) + '\n')
-                # elif 'click' in buttons['mini_machine_1'].handleEvent(event):
-                #     print event.pos
-                #     c.press_sound.play()
-                #     background_music.stop()
-                #     task['trial_stage'] = 'change_machine'
-                #     task['machine'] = task['all_machines'][1]
-                #     task['machine_sequence'][trial] = task['machine']
-                #     background_music = pygame.mixer.Sound('./sounds/machine' + str(task['machine']) + '_music.wav')
-                #     background_music.set_volume(0.2)
-                #     buttons, task = draw_screen(c, positions, buttons, sizes, task)
-                #     background_music.play(100,0)
-                #     c.log('Trial ' + str(trial) + ': Changing machines to machine ' + str(task['machine_sequence'][trial]) + ' at ' + repr(time.time()) + '\n')
-                # elif 'click' in buttons['mini_machine_2'].handleEvent(event):
-                #     c.press_sound.play()
-                #     background_music.stop()
-                #     task['trial_stage'] = 'change_machine'
-                #     task['machine'] = task['all_machines'][2]
-                #     task['machine_sequence'][trial] = task['machine']
-                #     background_music = pygame.mixer.Sound('./sounds/machine' + str(task['machine']) + '_music.wav')
-                #     background_music.set_volume(0.2)
-                #     buttons, task = draw_screen(c, positions, buttons, sizes, task)    
-                #     background_music.play(100,0)
-                #     c.log('Trial ' + str(trial) + ': Changing machines to machine ' + str(task['machine_sequence'][trial]) + ' at ' + repr(time.time()) + '\n')                        
-            elif event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+                for key in buttons:
+                    buttons[key].draw(c.screen)
 
-            for key in buttons:
-                buttons[key].draw(c.screen)
-
-            pygame.display.update()
-            savemat(matlab_output_file,task)
+                pygame.display.update()
+                savemat(matlab_output_file,task)
 
 savemat(matlab_output_file,task)
 background_music.stop()

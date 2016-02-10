@@ -18,7 +18,6 @@ from time import strftime,localtime
 from pygame import gfxdraw
 
 class ChoiceTask():
-    print "I'm here"
     # Define a full-screen display for the paradigm
     screen = pygame.display.set_mode((pygame.display.Info().current_w,pygame.display.Info().current_h))
     screen_width = screen.get_width()

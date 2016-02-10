@@ -8,7 +8,18 @@ import random
 from cstcg_buttons import CSTCGButton as SlotButton
 from time import strftime,localtime
 import time
+import serial
+from psychopy import core
+import sys
 
+# from ctypes import windll
+
+
+# port = windll.inpoutx64
+
+# address = 45072
+# trigger_on = 191
+# trigger_off = 0
 
 # Define colors:
 #BLUE =   (  0,   0, 128)
@@ -34,12 +45,9 @@ tnu_casino = pygame.image.load('./images/slot_machines_welcome_banner.png').conv
 card = pygame.image.load('./images/symbols_card.png').convert_alpha()
 slot_image = pygame.image.load('./images/base_slot_machine.png').convert_alpha()
 instructions = pygame.image.load('./images/Slide1.png').convert_alpha()
-greybox1 = pygame.image.load('./images/greyout1.png').convert_alpha()
-greybox2 = pygame.image.load('./images/greyout2.png').convert_alpha()
+selector_box = pygame.image.load('./images/symbols_selector.png').convert_alpha()
 
 # Reward
-# multiplier = [10,9,8,7,6,5,4,3,2]
-
 multiplier = [2,3,4,5,6,7,8,9,10]
 
 # Load symbols
@@ -80,6 +88,16 @@ spinstopsound.set_volume(0.7)
 # TODO: set this up as a button
 language = 'English'
 
+def eeg_trigger():
+    # port = windll.inpoutx64
+    # address = 45072
+    # trigger_on = 191
+    # trigger_off = 0
+    # port.Out32(address,trigger_on)
+    # core.wait(0.05)
+    # port.Out32(address,trigger_off)
+    print "Trigger"
+
 def sigmoid(x):
     s =  1.0/(1.0 + numpy.exp(-1.0*x))
     return s
@@ -101,36 +119,164 @@ def grey_out(c,task):
     pygame.display.update()
 
 def process_rtb(index, stage):
-    #import pdb; pdb.set_trace()
-    print index
-    print stage
+
     events = []
-    event1 = pygame.event.Event(MOUSEBUTTONDOWN)
-    event2 = pygame.event.Event(MOUSEBUTTONUP)
-    if stage == 'bet' or stage == 'clear':
-        if index == 1:
-            event1.pos = (520,794)
-        elif index == 2:
-            event1.pos = (680,795)
-        elif index == 4:
-            event1.pos = (890,780)
-        elif index == 8:
-            event1.pos = (910,680)
-    elif stage == 'pull':
-        if index == 1:
-            event1.pos = (810, 675)
-        elif index == 2:
-            event1.pos = (1010, 675)
-        elif index == 4:
-            event1.pos = (1210, 675)
+    if stage == 'bet' or stage == 'clear' or stage == 'pull' or stage == 'gamble': 
+        event1 = pygame.event.Event(MOUSEBUTTONDOWN)
+        event2 = pygame.event.Event(MOUSEBUTTONUP)
+        if stage == 'bet' or stage == 'clear':
+            if index == 1:
+                event1.pos = (520,794)
+            elif index == 2:
+                event1.pos = (680,795)
+            elif index == 8:
+                event1.pos = (890,780)
+            elif index == 4:
+                event1.pos = (910,680)
+        elif stage == 'pull':
+            if index == 1:
+                event1.pos = (530, 595)
+            elif index == 2:
+                event1.pos = (730, 595)
+            elif index == 4:
+                event1.pos = (950, 595)
+        elif stage == 'gamble':
+            if index == 1:
+                event1.pos = (358,690)
+            elif index == 8:
+                event1.pos = (1078,690)    
+        if event1.pos:    
+            event2.pos = event1.pos       
+            events.append(event1)  
+            events.append(event2)
+        return events
 
-        # This will be the three hold buttons
+def selector(c,task,index,selector_pos):
+    positions=[(8,360), 
+               (8,445), 
+               (8,520), 
+               (8,590), 
+               (8,670), 
+               (180,360),
+               (180,445),
+               (180,520),
+               (180,590),
+               (180,670)]
 
-    event2.pos = event1.pos       
-    events.append(event1)  
-    events.append(event2)
-    return events
-
+    pos = positions[selector_pos-1]
+    selected = False
+    if index == 1:
+        selector_pos += 1
+        if selector_pos == 11:
+            selector_pos = 1
+        pos = positions[selector_pos-1]
+    elif index == 8:
+        selected = True
+        c.log('Selected guess on Trial ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
+    # if selector_pos == 1:
+    #     if index == 4:
+    #         pos = positions[1]
+    #         selector_pos = 2
+    #     elif index == 8:
+    #         pos = positions[2]
+    #         selector_pos = 3
+    # elif selector_pos == 2:
+    #     if index == 2:
+    #         pos = positions[0]
+    #         selector_pos = 1
+    #     elif index == 8:
+    #         pos = positions[3]
+    #         selector_pos = 4
+    # elif selector_pos == 3:
+    #     if index == 1:
+    #         pos = positions[0]
+    #         selector_pos = 1
+    #     elif index == 4:
+    #         pos = positions[3]
+    #         selector_pos = 4
+    #     elif index == 8:
+    #         pos = positions[4]
+    #         selector_pos = 5
+    # elif selector_pos == 4:
+    #     if index == 1:
+    #         pos = positions[1]
+    #         selector_pos = 2
+    #     elif index == 2:
+    #         pos = positions[2]
+    #         selector_pos = 3
+    #     elif index == 8:
+    #         pos = positions[5]
+    #         selector_pos = 6
+    # elif selector_pos == 5:
+    #     if index == 1:
+    #         pos = positions[2]
+    #         selector_pos = 3
+    #     elif index == 4:
+    #         pos = positions[5]
+    #         selector_pos = 6
+    #     elif index == 8:
+    #         pos = positions[6]
+    #         selector_pos = 7
+    # elif selector_pos == 6:
+    #     if index == 1:
+    #         pos = positions[3]
+    #         selector_pos = 4
+    #     elif index == 2:
+    #         pos = positions[4]
+    #         selector_pos = 5
+    #     elif index == 8:
+    #         pos = positions[7]
+    #         selector_pos = 8
+    # elif selector_pos == 7:
+    #     if index == 1:
+    #         pos = positions[4]
+    #         selector_pos = 5
+    #     elif index == 4:
+    #         pos = positions[7]
+    #         selector_pos = 8
+    #     elif index == 8:
+    #         pos = positions[8]
+    #         selector_pos = 9
+    # elif selector_pos == 8:
+    #     if index == 1:
+    #         pos = positions[5]
+    #         selector_pos = 6
+    #     elif index == 2:
+    #         pos = positions[6]
+    #         selector_pos = 7
+    #     elif index == 8:
+    #         pos = positions[9]
+    #         selector_pos = 10
+    # elif selector_pos == 9:
+    #     if index == 1: 
+    #         pos = positions[6]
+    #         selector_pos = 7
+    #     elif index == 4:
+    #         pos = positions[9]
+    #         selector_pos = 10
+    #     elif index == 8:
+    #         pos = positions[10]
+    #         selector_pos = 11
+    # elif selector_pos == 10:
+    #     if index == 1:
+    #         pos = positions[7]
+    #         selector_pos = 8
+    #     elif index == 2:
+    #         pos = positions[8]
+    #         selector_pos = 9
+    #     elif index == 8:
+    #         pos = positions[10]
+    #         selector_pos = 11
+    # elif selector_pos == 11:
+    #     if index == 1:
+    #         pos = positions[8]
+    #         selector_pos = 9
+    #     elif index == 8:
+    #         selected = True
+    #         c.log('Selected guess on Trial ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
+    c.screen.blit(selector_box,pos)
+    pygame.display.update()
+    return selector_pos, selected
 
 def get_screen_elements(c, task):
 
@@ -152,8 +298,8 @@ def get_screen_elements(c, task):
 
  
     positions = {};
-    positions['scoreboard_x'] = 20
-    positions['scoreboard_y'] = c.bottom_y - 100
+    positions['scoreboard_x'] = 10
+    positions['scoreboard_y'] = c.center_y - 130
 
     positions['cashout_x'] = 20
     positions['cashout_y'] = c.top_y+0.1*sizes['sh']+1.2*sizes['bbh'] + 10
@@ -220,7 +366,7 @@ def get_screen_elements(c, task):
     positions['logo_x'] = c.left_x+(sizes['sh']/9)
     positions['logo_y'] = c.top_y
 
-    positions['account_screen_y'] = c.top_y+0.1*sizes['sh']
+    positions['account_screen_y'] = c.top_y
 
     positions['machine'] = {}
     positions['machine']['base_x'] = c.center_x-(machines['1'].get_width()/2)
@@ -276,7 +422,7 @@ def display_assets(c,positions,sizes,task):
 
 def make_buttons(c,positions,sizes,task,trial_stage):
     buttons = {}
-    if trial_stage == 'guess' or trial_stage == 'pull': 
+    if trial_stage == 'guess':
         buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
         caption="Bet +5", fgcolor=c.background_color, bgcolor=GRAY, font=c.button,highlight=YELLOW)
        
@@ -297,6 +443,28 @@ def make_buttons(c,positions,sizes,task,trial_stage):
         
         buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
         caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+
+    elif trial_stage == 'pull' or trial_stage == 'result': 
+        buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
+        caption="Bet +5", fgcolor=c.background_color, bgcolor=GRAY, font=c.button,highlight=YELLOW)
+       
+        buttons['add_ten']= SlotButton(rect=(positions['bet_10_x'],positions['bet_10_y'], sizes['sbw'],sizes['sbh']),\
+        caption="Bet +10", fgcolor=c.background_color, bgcolor=GRAY, font=c.button)
+
+        buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],sizes['sbh']),\
+        caption="Spin", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
+
+        buttons['clear'] = SlotButton(rect=(positions['clear_x'],positions['clear_y'], sizes['mbw'],sizes['sbh']),\
+        caption="Clear", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
+
+        buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+
+        buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+        
+        buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
 
     elif trial_stage == 'bet' or trial_stage == 'clear':
         buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
@@ -338,6 +506,9 @@ def draw_screen(c, positions, buttons, sizes, task):
   
     for key in buttons:
         buttons[key].draw(c.screen)
+
+    if task['trial_stage'] != 'guess':
+        selector(c,task,0,task['guess_trace'][task['trial']])
 
     # Draw main slot machine
     c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
@@ -450,6 +621,7 @@ def win_screen(c,positions, buttons, sizes, task):
             bigwinsound.play()
         else:
             winsound.play()
+        eeg_trigger()
         c.screen.blit(pygame.transform.scale(winnerblit, (c.screen_width, c.screen_height)),(10,10))
         pygame.display.update()
         waitfun(800)
@@ -464,10 +636,13 @@ def show_win_banner(c,positions,task,reward):
     if task['currency'] == 'AUD':
         c.text_screen('You won ' + str(reward) + ' AUD!!', font=c.title, valign='top', y_displacement= -45, wait_time=1000)
     elif task['currency'] == 'points':
+        eeg_trigger()
         c.text_screen('You won ' + str(reward) + ' points!', font=c.title, valign='top', y_displacement= -45, wait_time=1000)
 
 
 def gamble(c,task, positions, sizes):
+
+    RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
 
     card_back = pygame.image.load('./images/symbols_card_back.png').convert_alpha()
     cards = []
@@ -497,13 +672,20 @@ def gamble(c,task, positions, sizes):
 
     decided = False
     CARD = pygame.USEREVENT + 1
-    pygame.time.set_timer(CARD, 1000)
     time_elapsed = 0
     start_time = time.time()
     c.screen.blit(cards[0],(x_pos,y_pos))
     pygame.display.update()
+    pygame.time.set_timer(CARD, 1000)
     while not decided and time_elapsed < 3:
         time_elapsed = int(round(time.time()-start_time))
+        key_press = RTB.read() 
+        if len(key_press):
+            key_index = ord(key_press)
+            events = process_rtb(key_index, 'gamble')
+            pygame.event.post(events[0])
+            pygame.event.post(events[1])
+
         for event in pygame.event.get():
             if event.type in (MOUSEBUTTONUP, MOUSEBUTTONDOWN):
                 if 'click' in gamble_button.handleEvent(event): 
@@ -554,15 +736,18 @@ def show_result(c,positions,buttons,task, spinning=False):
             if task['wheel3']:
                 c.screen.blit(symbols[task['result_sequence'][task['trial']][3]],(positions['machine']['x3'],positions['machine']['y']))
         else:
+            eeg_trigger()
             c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
             c.screen.blit(symbols[task['result_sequence'][task['trial']][1]],(positions['machine']['x1'],positions['machine']['y']))
             pygame.display.flip()
             waitfun(wait)
 
+            eeg_trigger()
             c.screen.blit(symbols[task['result_sequence'][task['trial']][2]],(positions['machine']['x2'],positions['machine']['y']))
             pygame.display.flip()
             waitfun(wait)
 
+            eeg_trigger()
             c.screen.blit(symbols[task['result_sequence'][task['trial']][3]],(positions['machine']['x3'],positions['machine']['y']))
             pygame.display.flip()
             waitfun(500) 
@@ -589,6 +774,7 @@ def process_result(c,positions,buttons,sizes,task):
         waitfun(wait)
         win_screen(c,positions, buttons, sizes, task)
         draw_screen(c, positions, buttons, sizes, task)
+
         show_win_banner(c,positions, task,reward)
     elif task['result_sequence'][task['trial']][0] == '0' or task['result_sequence'][0] == '2': # loss or near miss 
         task['reward_grade'][task['trial']] = 0
@@ -604,6 +790,7 @@ def process_result(c,positions,buttons,sizes,task):
 
 def individual_wheel_spin(c, positions, buttons, task):
     pygame.event.clear()    
+    RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
     n = 200
     show1 = True
     show2 = False
@@ -615,8 +802,17 @@ def individual_wheel_spin(c, positions, buttons, task):
     task['wheel3'] = False
 
     counter = 0
+    eeg_trigger()
     while counter < 30:
         spinsound.play(100,0)
+
+        key_press = RTB.read() 
+        if len(key_press):
+            key_index = ord(key_press)
+
+            events = process_rtb(key_index, 'pull')
+            pygame.event.post(events[0])
+            pygame.event.post(events[1])
         if pygame.event.peek([MOUSEBUTTONDOWN,MOUSEBUTTONUP]):
             for event in pygame.event.get():
                 if event.type==MOUSEBUTTONDOWN:
@@ -633,6 +829,8 @@ def individual_wheel_spin(c, positions, buttons, task):
                     pygame.display.update()
                 elif event.type==MOUSEBUTTONUP:
                     if 'click' in buttons['hold1'].handleEvent(event):
+                        eeg_trigger()
+                        c.press_sound.play()
                         buttons['hold1'].draw(c.screen)
                         pygame.display.update()
                         task['wheel1'] = True
@@ -649,6 +847,7 @@ def individual_wheel_spin(c, positions, buttons, task):
                             pygame.display.update()
                             counter = 40
                     elif 'click' in buttons['hold2'].handleEvent(event):
+                        eeg_trigger()
                         c.press_sound.play()
                         buttons['hold2'].draw(c.screen)
                         pygame.display.update()
@@ -666,6 +865,7 @@ def individual_wheel_spin(c, positions, buttons, task):
                             pygame.display.update()
                             counter = 40
                     elif 'click' in buttons['hold3'].handleEvent(event):
+                        eeg_trigger()
                         c.press_sound.play()
                         buttons['hold3'].draw(c.screen)
                         pygame.display.update()
@@ -683,7 +883,6 @@ def individual_wheel_spin(c, positions, buttons, task):
                             show_result(c,positions,buttons,task, spinning=True)
                             pygame.display.update()
                             counter = 40
-                    print counter
         else:
             if 0 < round(time.time()*1000) % n < n/4 and show1:
                 if not task['wheel1']:
@@ -693,7 +892,15 @@ def individual_wheel_spin(c, positions, buttons, task):
                 show2 = True
             elif n/4 < round(time.time()*1000) % n < n/2 and show2:
                 if not task['wheel2']:
-                    c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x2'],positions['machine']['y']))
+                    if task['wheel1']:
+                        s = task['result_sequence'][task['trial']][1]
+                        idx = round(random.betavariate(1,1),1)
+                        if idx > 0.7:
+                            c.screen.blit(symbols[str(s)],(positions['machine']['x2'],positions['machine']['y']))
+                        else:
+                            c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x2'],positions['machine']['y']))
+                    else:
+                        c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x2'],positions['machine']['y']))
                     pygame.display.flip()
                 show2 = False;
                 show3 = True
@@ -705,7 +912,6 @@ def individual_wheel_spin(c, positions, buttons, task):
                 show4 = True
             elif n-10 < round(time.time()*1000) % n < n and show4:
                 counter += 1
-                print counter
                 c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
                 # if task['machine'] == 2:
                 #     bet_label = c.title.render("Bet",True,RED) 
@@ -743,6 +949,15 @@ def spin_wheels(c, positions, buttons, task):
     counter = 0
     while counter < 20:
         spinsound.play(100,0)
+
+        key_press = RTB.read() 
+        if len(key_press):
+            key_index = ord(key_press)
+
+            events = process_rtb(key_index, 'pull')
+            pygame.event.post(events[0])
+            pygame.event.post(events[1])
+
         if pygame.event.peek([MOUSEBUTTONDOWN,KEYDOWN,MOUSEBUTTONUP,KEYUP]):
             for event in pygame.event.get():
                 if event.type==MOUSEBUTTONDOWN:
