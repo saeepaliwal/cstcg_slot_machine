@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-    
 from __future__ import division
 
+testing = True
 
-# currency = raw_input("Enter the currency of the game (AUD or points): ")
-# while currency.lower() != 'aud' and currency.lower() != 'points':
-#     currency = raw_input("Please enter either AUD or points: ")
-# input = raw_input("Enter the type of input (keyboard or RTB:")
-# while input.lower() != 'keyboard' and input.lower() != 'rtb':
-#     input = raw_input("Please enter either keyboard or RTB:")
 response_box = True
 import serial
 RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
-# if input == 'RTB':
-#     response_box = True
 currency = 'points'
 
 from choice_task import ChoiceTask
@@ -56,8 +49,10 @@ c = ChoiceTask(background_color=DARK_GRAY,
 (subjectname) = c.subject_information_screen()
 subject = subjectname.replace(" ","")
 matlab_output_file = c.create_output_file(subjectname)
-# instruction_screen(c)
-# welcome_screen(c)
+
+if not testing:
+    instruction_screen(c)
+    welcome_screen(c)
 
 # Pull in probability trace:
 # Probability trace will have win/loss/near miss
@@ -81,11 +76,11 @@ task = {'bet_size': np.zeros(NUM_TRIALS).astype('int'),
 
 # Start with initial account and machine
 task['account'][0] = 500
-task['machine'] = 1
+task['machine'] = 3
 task['currency'] = currency
 
 # Individual wheel hold buttons:
-task['wheel_hold_buttons'] = True
+task['wheel_hold_buttons'] = False
 task['wheel1'] = False
 task['wheel2'] = False
 task['wheel3'] = False
@@ -93,14 +88,30 @@ task['wheel3'] = False
 # Set up initial screen 
 positions, buttons, sizes = get_screen_elements(c, task)
 
-for trial in range(NUM_TRIALS):    
+for trial in range(NUM_TRIALS):   
+    # Change machines
+    if trial == 25:
+        change_machine_screen(c)
+        task['machine'] = 4
+        task['wheel_hold_buttons'] = False
+    elif trial == 50:
+        change_machine_screen(c)
+        task['machine'] = 1
+        task['wheel_hold_buttons'] = True
+        positions['machine']['base_y'] = 0
+    elif trial == 75:
+        change_machine_screen(c)
+        task['machine'] = 2
+        task['wheel_hold_buttons'] = True
+        positions['machine']['base_y'] = 0
 
+    print trial
     next_trial = False
     if trial < 5:
         if trial == 0:
-            print "Training here"
-            #begin_training_screen(c)
-            #background_music.play(100,0)
+            if not testing:
+                begin_training_screen(c)
+                background_music.play(100,0)
 
     # Click everything forward
     task['bet_sequence'] = []
@@ -115,11 +126,13 @@ for trial in range(NUM_TRIALS):
         task['account'][trial] = task['account'][trial-1] 
 
     if trial == 5:
-        background_music.stop()
-        end_training_screen(c)
-        task['account'][trial] = 2000
-        welcome_screen(c)
-        background_music.play(100,0)
+        if not testing:
+            background_music.stop()
+            end_training_screen(c)
+            task['account'][trial] = 2000
+            welcome_screen(c)
+            background_music.play(100,0)
+
 
     # if int(str(result_sequence[trial])[0]) == 1:
     task['reward_grade'][trial] = int(str(result_sequence[trial])[1])
@@ -131,7 +144,7 @@ for trial in range(NUM_TRIALS):
   
     buttons, task = draw_screen(c, positions, buttons, sizes, task)
     selector_pos, selected = selector(c,task,0,selector_pos)
-    eeg_trigger()
+    eeg_trigger(1)
 
     while not next_trial:  
         pygame.time.wait(20)
@@ -149,12 +162,14 @@ for trial in range(NUM_TRIALS):
                     task['trial_stage'] = 'bet'
                     buttons, task = draw_screen(c, positions, buttons, sizes, task)
             elif task['trial_stage'] != 'guess':
-                events = process_rtb(key_index, task['trial_stage'])
-                pygame.event.post(events[0])
-                pygame.event.post(events[1])
+                events = process_rtb(key_index, task['trial_stage'], task['wheel_hold_buttons'])
+                if len(events) > 0:
+                    pygame.event.post(events[0])
+                    pygame.event.post(events[1])
 
             for event in pygame.event.get():
                 if event.type in (MOUSEBUTTONUP, MOUSEBUTTONDOWN):
+                    print event.pos
                     # Handle bet behavior 
                     # if task['trial_stage'] == 'bet' or task['trial_stage'] == 'pull':
                     if 'click' in buttons['add_five'].handleEvent(event):  
@@ -193,23 +208,23 @@ for trial in range(NUM_TRIALS):
                             c.log('Trial ' + str(trial) + ': Pulling wheels ' + repr(time.time()) + '\n')
                             c.log('Summary Trial' + str(trial) + ': Bet:' + str(task['bet_size'][trial]) + 'Account: ' + str([task['account'][trial]]))
                             task['trial_stage'] = 'result'
+                           
+                            if task['wheel_hold_buttons']:
+                                individual_wheel_spin(c,positions,buttons,task)
+                            else:
+                                spin_wheels(c, positions, buttons, task)
+                                show_result(c,positions,buttons,task)
 
-                            # if task['wheel_hold_buttons']:
-                            individual_wheel_spin(c,positions,buttons,task)
-                            # else:
-                            #     spin_wheels(c, positions, buttons, task)
-                            #     show_result(c,positions,buttons,task)
-                            
                             task = process_result(c,positions,buttons,sizes,task)  
                             next_trial = True
                 elif event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
+                if not next_trial:
+                    for key in buttons:
+                        buttons[key].draw(c.screen)
+                    pygame.display.update()
 
-                for key in buttons:
-                    buttons[key].draw(c.screen)
-
-                pygame.display.update()
                 savemat(matlab_output_file,task)
 
 savemat(matlab_output_file,task)
