@@ -1,44 +1,31 @@
 # -*- coding: utf-8 -*-    
 from __future__ import division
-
-testing = True
-
-response_box = True
 import serial
-RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
-currency = 'points'
-
 from choice_task import ChoiceTask
 import pygame
 from pygame.locals import *
-from cstcg_slot_functions import *
+from cstcg_slot_functions_win import *
 import random
 import numpy as np
 from scipy.io import savemat
+import platform
+
+testing = False
+response_box = True
+currency = 'points'
 
 # Define special characters
 ae = u"ä";
 ue = u"ü";
 
-
 # Define colors:
-BLUE =   (  0,   0, 128)
-GREEN =  (  0, 100,   0)
-RED =    (178,  34,  34)
-YELLOW = (255, 215,   0)
-GRAY =   (139, 139, 131)
-PURPLE = ( 72,  61, 139)
-ORANGE = (255, 140,   0)
-WHITE =  (255, 255, 255)
-DARK_GRAY = ( 20, 20, 20)
 GOLD   = ( 254, 195,  13)
-
 
 leversound = pygame.mixer.Sound('./sounds/lever.wav')
 background_music = pygame.mixer.Sound('./sounds/machine1_music.wav')
 background_music.set_volume(0.1)
 
-c = ChoiceTask(background_color=DARK_GRAY, 
+c = ChoiceTask(background_color=( 20, 20, 20), 
     title  = pygame.font.Font('./fonts/Lobster.ttf', 60),
     body  = pygame.font.Font('./fonts/Oswald-Bold.ttf', 30),
     header = pygame.font.Font('./fonts/Oswald-Bold.ttf', 40),
@@ -66,6 +53,7 @@ NUM_TRIALS = len(result_sequence)-1
 # Define dictionary of task attributes:
 task = {'bet_size': np.zeros(NUM_TRIALS).astype('int'),
         'account': np.zeros(NUM_TRIALS).astype('int'),
+        'did_gamble': np.zeros(NUM_TRIALS).astype('int'),
         'result_sequence': result_sequence,
         'machine_sequence': np.zeros(NUM_TRIALS).astype('int'),
         'reward_grade': np.zeros(NUM_TRIALS).astype('int'),
@@ -80,15 +68,23 @@ task['machine'] = 3
 task['currency'] = currency
 
 # Individual wheel hold buttons:
-task['wheel_hold_buttons'] = False
+task['wheel_hold_buttons'] = True
 task['wheel1'] = False
 task['wheel2'] = False
 task['wheel3'] = False
+
+# Initialize response box:
+if response_box: 
+if platform.system == 'Darwin': # Mac
+    RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
+elif platform.system == 'Windows': # Windows
+    RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
 
 # Set up initial screen 
 positions, buttons, sizes = get_screen_elements(c, task)
 
 for trial in range(NUM_TRIALS):   
+
     # Change machines
     if trial == 25:
         change_machine_screen(c)
@@ -143,12 +139,17 @@ for trial in range(NUM_TRIALS):
 
   
     buttons, task = draw_screen(c, positions, buttons, sizes, task)
-    selector_pos, selected = selector(c,task,0,selector_pos)
+    selector_pos, selected = selector(c,task,positions,0,selector_pos)
     eeg_trigger(1)
 
     while not next_trial:  
         pygame.time.wait(20)
-        
+
+
+        #for event in pygame.event.get():
+        #    if event.type in (MOUSEBUTTONUP, MOUSEBUTTONDOWN):
+        #        print event.pos  
+       
         key_press = RTB.read() 
         if len(key_press):
             key_index = ord(key_press)
@@ -156,13 +157,13 @@ for trial in range(NUM_TRIALS):
             if task['trial_stage'] == 'guess':
                 selected = False
                 draw_screen(c, positions, buttons, sizes, task)
-                selector_pos, selected = selector(c,task,key_index,selector_pos)
+                selector_pos, selected = selector(c,task,positions,key_index,selector_pos)
                 if selected:              
                     task['guess_trace'][trial] = selector_pos
                     task['trial_stage'] = 'bet'
                     buttons, task = draw_screen(c, positions, buttons, sizes, task)
             elif task['trial_stage'] != 'guess':
-                events = process_rtb(key_index, task['trial_stage'], task['wheel_hold_buttons'])
+                events = process_rtb(positions,key_index, task['trial_stage'], task['wheel_hold_buttons'])
                 if len(events) > 0:
                     pygame.event.post(events[0])
                     pygame.event.post(events[1])
@@ -173,6 +174,7 @@ for trial in range(NUM_TRIALS):
                     # Handle bet behavior 
                     # if task['trial_stage'] == 'bet' or task['trial_stage'] == 'pull':
                     if 'click' in buttons['add_five'].handleEvent(event):  
+                        print event.pos
                         c.press_sound.play()
                         task['trial_stage'] = 'bet'
                         task['bet_size'][trial] += 5
@@ -181,7 +183,8 @@ for trial in range(NUM_TRIALS):
                         display_assets(c,positions,sizes,task)
                         c.log('Trial ' + str(trial) + ': Added 5 to bet. ' + repr(time.time()) + '\n')
                     elif 'click' in buttons['add_ten'].handleEvent(event):
-                        c.press_sound.play()
+                        print event.pos
+                        #c.press_sound.play()
                         task['trial_stage'] = 'bet'
                         task['bet_size'][trial] += 10
                         task['bet_sequence'].append(10)
@@ -189,7 +192,8 @@ for trial in range(NUM_TRIALS):
                         display_assets(c,positions,sizes,task)
                         c.log('Trial ' + str(trial) + ': Added 10 to bet. ' + repr(time.time()) + '\n')
                     elif 'click' in buttons['clear'].handleEvent(event):
-                        c.press_sound.play()
+                        print event.pos
+                        #c.press_sound.play()
                         if len(task['bet_sequence']) > 0:   
                             c.log('Trial ' + str(trial) + ': Clearing ' + str(task['bet_sequence'][-1]) + 'from bet. ' + repr(time.time()) + '\n')
                             task['trial_stage'] = 'clear'
@@ -197,6 +201,7 @@ for trial in range(NUM_TRIALS):
                             task = update_account(c,positions, sizes, task)
                             display_assets(c,positions,sizes,task)
                     elif 'click' in buttons['pull'].handleEvent(event):
+                        print event.pos
                         if task['bet_size'][trial] > 0:
                             task['trial_stage'] = 'pull'
                             buttons, task = draw_screen(c, positions, buttons, sizes, task)
@@ -210,12 +215,12 @@ for trial in range(NUM_TRIALS):
                             task['trial_stage'] = 'result'
                            
                             if task['wheel_hold_buttons']:
-                                individual_wheel_spin(c,positions,buttons,task)
+                                individual_wheel_spin(c,positions,buttons,task, RTB)
                             else:
-                                spin_wheels(c, positions, buttons, task)
+                                spin_wheels(c, positions, buttons, task, RTB)
                                 show_result(c,positions,buttons,task)
 
-                            task = process_result(c,positions,buttons,sizes,task)  
+                            task = process_result(c,positions,buttons,sizes,task, RTB)  
                             next_trial = True
                 elif event.type == pygame.QUIT:
                     pygame.quit()

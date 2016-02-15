@@ -11,15 +11,8 @@ import time
 import serial
 from psychopy import core
 import sys
+from ctypes import windll
 
-# from ctypes import windll
-
-
-# port = windll.inpoutx64
-
-# address = 45072
-# trigger_on = 191
-# trigger_off = 0
 
 # Define colors:
 #BLUE =   (  0,   0, 128)
@@ -36,7 +29,6 @@ BRIGHT_ORANGE = ( 242, 101,  34)
 RED    = ( 205,  73,  57)
 YELLOW = ( 231, 182,  40)
 GOLD   = ( 254, 195,  13)
-
 
 money_font = pygame.font.Font('./fonts/DS-DIGIB.TTF',80)
 scoreboard = pygame.image.load('./images/symbols_scoreboard.png').convert_alpha()
@@ -89,14 +81,13 @@ spinstopsound.set_volume(0.7)
 language = 'English'
 
 def eeg_trigger(value):
-    # port = windll.inpoutx64
-    # address = 45072
-    # trigger_on = value
-    # trigger_off = 0
-    # port.Out32(address,trigger_on)
-    # core.wait(0.05)
-    # port.Out32(address,trigger_off)
-    print "Trigger"
+    port = windll.inpoutx64
+    address = 45072
+    trigger_on = value
+    trigger_off = 0
+    port.Out32(address,trigger_on)
+    core.wait(0.05)
+    port.Out32(address,trigger_off)
 
 def sigmoid(x):
     s =  1.0/(1.0 + numpy.exp(-1.0*x))
@@ -118,8 +109,9 @@ def grey_out(c,task):
         c.screen.blit(greybox1,(430,580))
     pygame.display.update()
 
-def process_rtb(index, stage, hold_on):
+def process_rtb(positions,index, stage, hold_on):
 
+    fix = 50
     events = []
     event_set = False
     if stage == 'bet' or stage == 'clear' or stage == 'pull' or stage == 'gamble': 
@@ -127,33 +119,33 @@ def process_rtb(index, stage, hold_on):
         event2 = pygame.event.Event(MOUSEBUTTONUP)
         if stage == 'bet' or stage == 'clear':
             if index == 1:
-                event1.pos = (520,794)
+                event1.pos = (positions['bet_5_x']+fix,positions['bet_5_y']+fix)
                 event_set = True
             elif index == 2:
-                event1.pos = (680,795)
-                event_set = True
-            elif index == 8:
-                event1.pos = (890,780)
+                event1.pos = (positions['bet_10_x']+fix,positions['bet_10_y']+fix)
                 event_set = True
             elif index == 4:
-                event1.pos = (910,680)
+                event1.pos = (positions['pull_x']+fix,positions['pull_y']+fix)
+                event_set = True
+            elif index == 8:
+                event1.pos = (positions['clear_x']+fix,positions['clear_y']+fix)
                 event_set = True
         elif stage == 'pull' and hold_on:
             if index == 1:
-                event1.pos = (530, 595)
+                event1.pos = (positions['hold1_x']+fix, positions['hold_y']+fix)
                 event_set = True
             elif index == 2:
-                event1.pos = (730, 595)
+                event1.pos = (positions['hold2_x']+fix, positions['hold_y']+fix)
                 event_set = True
             elif index == 4:
-                event1.pos = (950, 595)
+                event1.pos = (positions['hold3_x']+fix, positions['hold_y']+fix)
                 event_set = True
         elif stage == 'gamble':
             if index == 1:
-                event1.pos = (358,690)
+                event1.pos = (positions['gamble_x'],positions['gamble_y'])
                 event_set = True
             elif index == 8:
-                event1.pos = (1078,690)  
+                event1.pos = (positions['no_gamble_x'],positions['no_gamble_y'])  
                 event_set = True  
         if event_set:    
             event2.pos = event1.pos       
@@ -161,26 +153,26 @@ def process_rtb(index, stage, hold_on):
             events.append(event2)
         return events
 
-def selector(c,task,index,selector_pos):
-    positions=[(8,360), 
-               (8,445), 
-               (8,520), 
-               (8,590), 
-               (8,670), 
-               (180,360),
+def selector(c,task,positions,index,selector_pos):
+    sel_positions=[(8,445), 
+               (8,525), 
+               (8,608), 
+               (8,679), 
+               (8,755), 
                (180,445),
-               (180,520),
-               (180,590),
-               (180,670),
-               (100,730)]
+               (180,530),
+               (180,600),
+               (180,682),
+               (180,755),
+               (100,800)]
 
-    pos = positions[selector_pos-1]
+    pos = sel_positions[selector_pos-1]
     selected = False
     if index == 1:
         selector_pos += 1
         if selector_pos == 12:
             selector_pos = 1
-        pos = positions[selector_pos-1]
+        pos = sel_positions[selector_pos-1]
     elif index == 8:
         selected = True
         c.log('Selected guess on Trial ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
@@ -293,6 +285,12 @@ def get_screen_elements(c, task):
     positions['mini_machine']['y1'] = c.center_y - 85
     positions['mini_machine']['y2'] = c.center_y + 140
 
+    positions['gamble_x'] = c.left_center_x-sizes['bbw']/2
+    positions['gamble_y'] = c.bottom_y+sizes['sbh']/2
+
+    positions['no_gamble_x'] = c.right_center_x-sizes['bbw']/2
+    positions['no_gamble_y'] = c.bottom_y+sizes['sbh']/2
+ 
     c.screen.fill(c.background_color)
 
     # Set up buttons
@@ -421,7 +419,7 @@ def draw_screen(c, positions, buttons, sizes, task):
         buttons[key].draw(c.screen)
 
     if task['trial_stage'] != 'guess':
-        selector(c,task,0,task['guess_trace'][task['trial']])
+        selector(c,task,positions,0,task['guess_trace'][task['trial']])
 
     # Draw main slot machine
     c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
@@ -560,10 +558,7 @@ def show_win_banner(c,positions,task,reward):
         c.text_screen('You won ' + str(reward) + ' points!', font=c.title, valign='top', y_displacement= -45, wait_time=1000)
 
 
-def gamble(c,task, positions, sizes):
-
-    RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
-
+def gamble(c,task, positions, sizes, RTB):
     card_back = pygame.image.load('./images/symbols_card_back.png').convert_alpha()
     cards = []
     cards.append(pygame.image.load('./images/symbols_card1.png').convert_alpha())
@@ -581,9 +576,9 @@ def gamble(c,task, positions, sizes):
     pygame.display.update()
     waitfun(1000)
 
-    gamble_button = SlotButton(rect=(c.left_center_x-sizes['bbw']/2,c.bottom_y+sizes['sbh']/2, sizes['bbw'],sizes['sbh']),\
+    gamble_button = SlotButton(rect=(positions['gamble_x'],positions['gamble_y'], sizes['bbw'],sizes['sbh']),\
         caption="Gamble",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
-    no_gamble_button = SlotButton(rect=(c.right_center_x-sizes['bbw']/2,c.bottom_y+sizes['sbh']/2,sizes['bbw'],sizes['sbh']),\
+    no_gamble_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
         caption="No thanks.", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
 
     gamble_button.draw(c.screen)
@@ -602,7 +597,7 @@ def gamble(c,task, positions, sizes):
         key_press = RTB.read() 
         if len(key_press):
             key_index = ord(key_press)
-            events = process_rtb(key_index, 'gamble',task['wheel_hold_buttons'])
+            events = process_rtb(positions,key_index, 'gamble',task['wheel_hold_buttons'])
             if len(events) > 0:
                 pygame.event.post(events[0])
                 pygame.event.post(events[1])
@@ -610,12 +605,13 @@ def gamble(c,task, positions, sizes):
         for event in pygame.event.get():
             if event.type in (MOUSEBUTTONUP, MOUSEBUTTONDOWN):
                 if 'click' in gamble_button.handleEvent(event): 
-                    c.log('Decided to Gamble on trial ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
+                    c.log('Decided to Gamble on trial ' + str(task['trial']) +  ' at ' + repr(time.time()) + '\n')
                     if int(task['result_sequence'][task['trial']][5]) == 1:
                         task['account'][task['trial']] = task['account'][task['trial']] + task['winloss'][task['trial']]
                         c.screen.blit(card_won,(x_pos,y_pos))
                         gamble_button.draw(c.screen)
                         pygame.display.flip()
+                        c.log('Won gamble on trial ' + str(task['trial']) +  '  at ' + repr(time.time()) + '\n')
                         winsound.play()
                         waitfun(1000)
                         task['winloss'][task['trial']] = 2*task['winloss'][task['trial']]
@@ -627,11 +623,12 @@ def gamble(c,task, positions, sizes):
                         pygame.display.flip()
                         c.screen.blit(card_lost,(x_pos,y_pos))
                         pygame.display.flip()
+                        c.log('Lost gamble on trial ' + str(task['trial']) +  '  at ' + repr(time.time()) + '\n')
                         waitfun(1000)
                         task['winloss'][task['trial']] = 0
                         decided = True
                 elif 'click' in no_gamble_button.handleEvent(event):
-                    c.log('Did not gamble on trial ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
+                    c.log('Did not gamble on trial ' + str(task['trial']) +  ' at ' + repr(time.time()) + '\n')
                     no_gamble_button.draw(c.screen)
                     pygame.display.update()
                     decided = True
@@ -686,7 +683,7 @@ def show_result(c,positions,buttons,task, spinning=False):
         pygame.display.flip()
         waitfun(500)
 
-def process_result(c,positions,buttons,sizes,task):
+def process_result(c,positions,buttons,sizes,task, RTB):
     wait = 190
     if task['result_sequence'][task['trial']][0] == '1':
         task['reward_grade'][task['trial']] = int(task['result_sequence'][task['trial']][2])
@@ -702,17 +699,17 @@ def process_result(c,positions,buttons,sizes,task):
         #draw_screen(c, positions, buttons, sizes, task)
 
     if int(task['result_sequence'][task['trial']][4]) == 1:
-        gamble(c, task, positions, sizes)
+        gamble(c, task, positions, sizes, RTB)
         #draw_screen(c, positions, buttons, sizes, task)
 
     task = update_account(c,positions, sizes, task)
     return task
 
 
-def individual_wheel_spin(c, positions, buttons, task):
+def individual_wheel_spin(c, positions, buttons, task,RTB):
     pygame.event.clear()    
-    RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
-    n = 200
+    
+    n = 100
     show1 = True
     show2 = False
     show3 = False
@@ -730,7 +727,7 @@ def individual_wheel_spin(c, positions, buttons, task):
         key_press = RTB.read() 
         if len(key_press):
             key_index = ord(key_press)
-            events = process_rtb(key_index, 'pull', task['wheel_hold_buttons'])
+            events = process_rtb(positions,key_index, 'pull', task['wheel_hold_buttons'])
             if len(events) > 0:
                 pygame.event.post(events[0])
                 pygame.event.post(events[1])
@@ -859,10 +856,9 @@ def individual_wheel_spin(c, positions, buttons, task):
 
 
 
-def spin_wheels(c, positions, buttons, task):
+def spin_wheels(c, positions, buttons, task, RTB):
     pygame.event.clear()    
-    RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
-    n = 200
+    n = 100
     show1 = True
     show2 = False
     show3 = False
@@ -878,7 +874,7 @@ def spin_wheels(c, positions, buttons, task):
         if len(key_press):
             key_index = ord(key_press)
 
-            events = process_rtb(key_index, 'pull', task['wheel_hold_buttons'])
+            events = process_rtb(positions,key_index, 'pull', task['wheel_hold_buttons'])
             if len(events) > 0:
                 pygame.event.post(events[0])
                 pygame.event.post(events[1])
