@@ -10,7 +10,8 @@ import numpy as np
 from scipy.io import savemat
 import platform
 
-testing = False
+
+
 response_box = True
 currency = 'points'
 
@@ -46,7 +47,7 @@ matlab_output_file = c.create_output_file(subjectname)
 
 # Task trace:
 result_sequence = []
-wheel_hold_bool = [False, True]
+wheel_hold_bool = [True, True]
 block_order = []
 control_seq = []
 
@@ -108,37 +109,35 @@ task['training'] = True
 # Set up initial screen 
 positions, buttons, sizes = get_screen_elements(c, task)
 
-if not testing:
-    instruction_screen(c,positions,sizes,RTB)
-    welcome_screen(c)
+
+instruction_screen(c,positions,sizes,RTB)
+welcome_screen(c)
 
 for trial in range(NUM_TRIALS):   
 
     if trial == 0:
-        if not testing:
-            begin_training_screen(c)
-            background_music.play(100,0)
+        begin_training_screen(c)
+        background_music.play(100,0)
 
     if trial < 10:
         task['machine'] = 5
         task['wheel_hold_buttons'] = wheel_hold_bool[0]
-    elif 10 <= trial <= 20:
+    elif 10 <= trial < 20:
         task['machine'] = 6
         task['wheel_hold_buttons'] = wheel_hold_bool[1]
-    elif trial == 21:
-        if not testing:
-            task['training'] = False
-            background_music.stop()
-            end_training_screen(c)
-            task['account'][trial] = 2000
-            task['machine'] = block_order[0]
-            task['current_block'] = block_order[0]
-            task['wheel_hold_buttons'] = wheel_hold_bool[2]
-            welcome_screen(c)
-            background_music.play(100,0)
-            c.log('Starting block ' + str(block_order[0]) + ' at ' + repr(time.time()) + '\n')
-            c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
-            c.log('Wheel hold buttons are ' + str(wheel_hold_bool[3]) + ' at ' + repr(time.time()) + '\n')
+    elif trial == 20:
+        task['training'] = False
+        background_music.stop()
+        end_training_screen(c)
+        task['account'][trial] = 2000
+        task['machine'] = block_order[0]
+        task['current_block'] = block_order[0]
+        task['wheel_hold_buttons'] = wheel_hold_bool[2]
+        welcome_screen(c)
+        background_music.play(100,0)
+        c.log('Starting block ' + str(block_order[0]) + ' at ' + repr(time.time()) + '\n')
+        c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
+        c.log('Wheel hold buttons are ' + str(wheel_hold_bool[3]) + ' at ' + repr(time.time()) + '\n')
     elif trial == 65:
         change_machine_screen(c)
         task['machine'] = block_order[1]

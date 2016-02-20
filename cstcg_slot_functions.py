@@ -328,6 +328,28 @@ def display_assets(c,positions,sizes,task):
     pygame.display.update()
 
 
+def make_hold_buttons(c,positions,sizes,task):
+    buttons = {}
+
+    buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+    caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+    if task['ungrey_wheel2']:
+        buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+    else:
+        buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+
+    if task['ungrey_wheel3']:   
+        buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+    else: 
+        buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+
+    return buttons
+
+
 def make_buttons(c,positions,sizes,task,trial_stage):
     buttons = {}
     if trial_stage == 'guess':
@@ -621,8 +643,8 @@ def gamble(c,task, positions, sizes, RTB):
     c.screen.blit(card_back,(x_pos,y_pos))
 
     eeg_trigger(c,task,'gamble_screen')
-    pygame.display.update()
-    waitfun(1000)
+    # pygame.display.update()
+    # waitfun(100)
 
     gamble_button = SlotButton(rect=(positions['gamble_x'],positions['gamble_y'], sizes['bbw'],sizes['sbh']),\
         caption="Gamble",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
@@ -790,22 +812,8 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
 
     counter = 0
     time_start = int(round(time.time()*1000))
-    while counter < 30:
-        spinsound.play(100,0)
-        if counter == 10:
-            task['ungrey_wheel2'] = True
-            buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])    
-            for key in buttons:
-                buttons[key].draw(c.screen)
-            pygame.display.update()
-
-        elif counter == 20:
-            task['ungrey_wheel3'] = True
-            buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
-            for key in buttons:
-                buttons[key].draw(c.screen)
-            pygame.display.update()
-
+    spinsound.play(100,0)
+    while counter < 40:
         key_press = RTB.read() 
         if len(key_press):
             key_index = ord(key_press)
@@ -813,67 +821,67 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
             if len(events) > 0:
                 pygame.event.post(events[0])
                 pygame.event.post(events[1])
-        if pygame.event.peek([MOUSEBUTTONDOWN,MOUSEBUTTONUP]):
-            for event in pygame.event.get():
-                if event.type==MOUSEBUTTONDOWN:
-                    c.log('Trial ' + str(task['trial']) + ': Holding wheels at ' + repr(time.time()) + '\n')
-                    buttons['hold1'].handleEvent(event)
-                    buttons['hold1'].draw(c.screen)
-
-                    if task['ungrey_wheel2']:
-                        buttons['hold2'].handleEvent(event)
-                        buttons['hold2'].draw(c.screen)
-
-                    if task['ungrey_wheel3']:
-                        buttons['hold3'].handleEvent(event)
-                        buttons['hold3'].draw(c.screen)
-
-                    pygame.display.update()
-                elif event.type==MOUSEBUTTONUP:
-                    if 'click' in buttons['hold1'].handleEvent(event):
-                        c.press_sound.play()
+            if pygame.event.peek([MOUSEBUTTONDOWN,MOUSEBUTTONUP]):
+                for event in pygame.event.get():
+                    if event.type==MOUSEBUTTONDOWN:
+                        c.log('Trial ' + str(task['trial']) + ': Holding wheels at ' + repr(time.time()) + '\n')
+                        buttons['hold1'].handleEvent(event)
                         buttons['hold1'].draw(c.screen)
-                        pygame.display.update()
-                        task['wheel1'] = True
- 
-                        if task['wheel2'] and task['wheel3']:
-                            buttons['pull'].handleEvent(event)
-                            buttons['pull'].draw(c.screen)
-                            c.wait_fun(100)                  
-                            c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))      
-                            show_result(c,positions,buttons,task,spinning=True)
-                            pygame.display.update()
-                            counter = 40
-                    if task['ungrey_wheel2']:
-                        if 'click' in buttons['hold2'].handleEvent(event):
-                            c.press_sound.play()
+
+                        if task['ungrey_wheel2']:
+                            buttons['hold2'].handleEvent(event)
                             buttons['hold2'].draw(c.screen)
-                            pygame.display.update()
-                            task['wheel2'] = True
 
-                            if task['wheel1'] and task['wheel3']:
-                                buttons['pull'].handleEvent(event)
-                                buttons['pull'].draw(c.screen)           
-                                c.wait_fun(100)
-                                c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
-                                show_result(c,positions,buttons,task, spinning=True)
-                                pygame.display.update()
-                                counter = 40
-                    if task['ungrey_wheel3']:
-                        if 'click' in buttons['hold3'].handleEvent(event):
-                            c.press_sound.play()
+                        if task['ungrey_wheel3']:
+                            buttons['hold3'].handleEvent(event)
                             buttons['hold3'].draw(c.screen)
-                            pygame.display.update()
-                            task['wheel3'] = True
 
-                            if task['wheel1'] and task['wheel2']:
+                        pygame.display.update()
+                    elif event.type==MOUSEBUTTONUP:
+                        if 'click' in buttons['hold1'].handleEvent(event):
+                            c.press_sound.play()
+                            buttons['hold1'].draw(c.screen)
+                            pygame.display.update()
+                            task['wheel1'] = True
+     
+                            if task['wheel2'] and task['wheel3']:
                                 buttons['pull'].handleEvent(event)
                                 buttons['pull'].draw(c.screen)
-                                c.wait_fun(100)
-                                c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
-                                show_result(c,positions,buttons,task, spinning=True)
+                                c.wait_fun(100)                  
+                                c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))      
+                                show_result(c,positions,buttons,task,spinning=True)
                                 pygame.display.update()
                                 counter = 40
+                        if task['ungrey_wheel2']:
+                            if 'click' in buttons['hold2'].handleEvent(event):
+                                c.press_sound.play()
+                                buttons['hold2'].draw(c.screen)
+                                pygame.display.update()
+                                task['wheel2'] = True
+
+                                if task['wheel1'] and task['wheel3']:
+                                    buttons['pull'].handleEvent(event)
+                                    buttons['pull'].draw(c.screen)           
+                                    c.wait_fun(100)
+                                    c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
+                                    show_result(c,positions,buttons,task, spinning=True)
+                                    pygame.display.update()
+                                    counter = 40
+                        if task['ungrey_wheel3']:
+                            if 'click' in buttons['hold3'].handleEvent(event):
+                                c.press_sound.play()
+                                buttons['hold3'].draw(c.screen)
+                                pygame.display.update()
+                                task['wheel3'] = True
+
+                                if task['wheel1'] and task['wheel2']:
+                                    buttons['pull'].handleEvent(event)
+                                    buttons['pull'].draw(c.screen)
+                                    c.wait_fun(100)
+                                    c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
+                                    show_result(c,positions,buttons,task, spinning=True)
+                                    pygame.display.update()
+                                    counter = 40
         else:
             if 0 < round(time.time()*1000) % n < n/4 and show1:
                 if not task['wheel1']:
@@ -905,6 +913,18 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
                 counter += 1
                 c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
                 show_result(c,positions,buttons,task, spinning=True)
+
+                if counter == 10:
+                    task['ungrey_wheel2'] = True
+                    buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
+                    for key in buttons:
+                        buttons[key].draw(c.screen)
+                elif counter == 20:
+                    task['ungrey_wheel3'] = True
+                    buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
+                    for key in buttons:
+                        buttons[key].draw(c.screen)
+
                 pygame.display.flip()
                 show4 = False
                 show1 = True
@@ -1002,7 +1022,7 @@ def spin_wheels(c, positions, buttons, task, RTB):
         spinsound.stop()
 
 
-def eeg_trigger(c,task,type):
+def eeg_trigger(c,task,stage):
     # port = windll.inpoutx64
     # address = 45072
 
