@@ -14,6 +14,13 @@ testing = False
 response_box = True
 currency = 'points'
 
+# Initialize response box:
+if response_box: 
+    if platform.system() == 'Darwin': # Mac
+        RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
+    elif platform.system() == 'Windows': # Windows
+        RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
+
 # Define special characters
 ae = u"ä";
 ue = u"ü";
@@ -37,13 +44,9 @@ c = ChoiceTask(background_color=( 20, 20, 20),
 subject = subjectname.replace(" ","")
 matlab_output_file = c.create_output_file(subjectname)
 
-if not testing:
-    instruction_screen(c)
-    welcome_screen(c)
-
 # Task trace:
 result_sequence = []
-wheel_hold_bool = [True, False]
+wheel_hold_bool = [False, True]
 block_order = []
 control_seq = []
 
@@ -70,7 +73,6 @@ for b in block_order:
     result_sequence = result_sequence + block_sequence
 
 NUM_TRIALS = len(result_sequence)-1
-
 
 # Define dictionary of task attributes:
 task = {'bet_size': np.zeros(NUM_TRIALS).astype('int'),
@@ -103,15 +105,12 @@ task['wheel3'] = False
 
 task['training'] = True
 
-# Initialize response box:
-if response_box: 
-    if platform.system() == 'Darwin': # Mac
-        RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
-    elif platform.system() == 'Windows': # Windows
-        RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
-
 # Set up initial screen 
 positions, buttons, sizes = get_screen_elements(c, task)
+
+if not testing:
+    instruction_screen(c,positions,sizes,RTB)
+    welcome_screen(c)
 
 for trial in range(NUM_TRIALS):   
 

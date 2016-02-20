@@ -39,11 +39,20 @@ win_banner = pygame.image.load('./images/symbols_banner.png').convert_alpha()
 tnu_casino = pygame.image.load('./images/slot_machines_welcome_banner.png').convert_alpha()
 card = pygame.image.load('./images/symbols_card.png').convert_alpha()
 slot_image = pygame.image.load('./images/base_slot_machine.png').convert_alpha()
-instructions = pygame.image.load('./images/Slide1.png').convert_alpha()
 selector_box = pygame.image.load('./images/symbols_selector.png').convert_alpha()
 
 # Reward
 multiplier = [2,3,4,5,6,7,8,9,10]
+
+# Load instructions
+instructions = {}
+instructions['1'] = pygame.image.load('./images/Slide1.png').convert_alpha()
+instructions['2'] = pygame.image.load('./images/Slide2.png').convert_alpha()
+instructions['3'] = pygame.image.load('./images/Slide3.png').convert_alpha()
+instructions['4'] = pygame.image.load('./images/Slide4.png').convert_alpha()
+instructions['5'] = pygame.image.load('./images/Slide5.png').convert_alpha()
+instructions['6'] = pygame.image.load('./images/Slide6.png').convert_alpha()
+instructions['7'] = pygame.image.load('./images/Slide7.png').convert_alpha()
 
 # Load symbols
 symbols = {}
@@ -95,11 +104,22 @@ def logit(x):
 
 def is_odd(num):
     return num & 0x1
-def process_rtb(positions,index, stage, hold_on):
 
+
+def process_rtb(positions,index, stage, hold_on):
     fix = 50
     events = []
     event_set = False
+    if stage == 'instructions':
+        event1 = pygame.event.Event(MOUSEBUTTONDOWN)
+        event2 = pygame.event.Event(MOUSEBUTTONUP)
+        if index == 1:
+            event1.pos = (positions['gamble_x'],positions['gamble_y'])
+            event_set = True
+        elif index == 8:
+            event1.pos = (positions['no_gamble_x'],positions['no_gamble_y'])  
+            event_set = True  
+
     if stage == 'bet' or stage == 'clear' or stage == 'pull' or stage == 'gamble': 
         event1 = pygame.event.Event(MOUSEBUTTONDOWN)
         event2 = pygame.event.Event(MOUSEBUTTONUP)
@@ -135,11 +155,11 @@ def process_rtb(positions,index, stage, hold_on):
             elif index == 8:
                 event1.pos = (positions['no_gamble_x'],positions['no_gamble_y'])  
                 event_set = True  
-        if event_set:    
-            event2.pos = event1.pos       
-            events.append(event1)  
-            events.append(event2)
-        return events
+    if event_set:    
+        event2.pos = event1.pos       
+        events.append(event1)  
+        events.append(event2)
+    return events
 
 def selector(c,task,positions,index,selector_pos):
     sel_positions=[(8,445), 
@@ -470,10 +490,53 @@ def welcome_screen(c, wait_time=3000):
     winsound.play()
     c.attn_screen(attn=tnu_casino,wait_time=wait_time)
 
-def instruction_screen(c):
-    c.blank_screen()
-    c.button_screen(choice_image=instructions, button_txt="Next", y_offset=-40)
+def instruction_screen(c,positions,sizes,RTB):
 
+    back_button = SlotButton(rect=(positions['gamble_x'],positions['gamble_y'], sizes['bbw'],sizes['sbh']),\
+        caption="Back",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
+    next_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
+        caption="Next", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
+
+    finish_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
+        caption="Finish", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
+
+    counter = 1
+    c.blank_screen()
+    c.screen.blit(instructions[str(counter)],(c.center_x-instructions[str(counter)].get_width()/2,\
+        c.top_y-instructions[str(counter)].get_height()/8))  
+    next_button.draw(c.screen)
+    pygame.display.update()
+    instructions_done = False
+    while not instructions_done:
+        key_press = RTB.read() 
+        if len(key_press):
+            key_index = ord(key_press)
+            events = process_rtb(positions,key_index, 'instructions','False')
+            if len(events) > 0:
+                pygame.event.post(events[0])
+                pygame.event.post(events[1])
+
+            for event in pygame.event.get():
+                if event.type in (MOUSEBUTTONUP, MOUSEBUTTONDOWN):
+                    if 'click' in next_button.handleEvent(event): 
+                        counter += 1
+                        if counter == 8:
+                            instructions_done = True
+                    elif 'click' in back_button.handleEvent(event):
+                        if counter > 1:
+                            counter  = counter - 1
+                if event.type == MOUSEBUTTONUP and counter < 8:
+                    c.blank_screen()
+                    c.screen.blit(instructions[str(counter)],(c.center_x-instructions[str(counter)].get_width()/2,\
+                        c.top_y-instructions[str(counter)].get_height()/8))  
+                    if counter > 1:
+                        back_button.draw(c.screen)
+                    
+                    if counter == 7:
+                        finish_button.draw(c.screen)
+                    else:
+                        next_button.draw(c.screen)
+                    pygame.display.update()
 
 def begin_training_screen(c):
     c.blank_screen()
