@@ -10,8 +10,6 @@ import numpy as np
 from scipy.io import savemat
 import platform
 
-
-
 response_box = True
 currency = 'points'
 
