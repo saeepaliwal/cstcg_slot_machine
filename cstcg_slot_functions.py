@@ -1207,13 +1207,13 @@ def eeg_trigger(c,task,stage):
         
 
 
-    # trigger_on = value
-    # trigger_off = 0
+        trigger_on = value
+        trigger_off = 0
 
-    # Send trigger
-    # port.Out32(address,trigger_on)
-    # core.wait(0.05)
-    # port.Out32(address,trigger_off)
+        #Send trigger
+        port.Out32(address,trigger_on)
+        core.wait(0.05)
+        port.Out32(address,trigger_off)
 
         c.log('EEG: Sent trigger ' + str(value) +  ' at ' + repr(time.time()) + '\n')
         print "Trigger: " + str(value)

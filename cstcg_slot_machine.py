@@ -11,6 +11,7 @@ from scipy.io import savemat
 import platform
 
 response_box = True
+training = False
 currency = 'points'
 
 # Initialize response box:
@@ -55,8 +56,9 @@ with open ('taskBackend_training.txt','r') as f:
 result_sequence = probability_trace.split(',')
 
 # Randomize blocks for real trials
-for j in range(4):
-    block_order.append(random.randint(1,4));
+# for j in range(4):
+#     block_order.append(random.randint(1,4));
+block_order = [1,2,3,4]
 
 for b in block_order:
     with open ('taskBackend_' + str(b) + '.txt','r') as f:
@@ -70,6 +72,7 @@ for b in block_order:
         control_seq.append(0)
     block_sequence = block_sequence[1:]
     result_sequence = result_sequence + block_sequence
+    print "Block sequence: " + str(b)
 
 NUM_TRIALS = len(result_sequence)-1
 
@@ -86,7 +89,7 @@ task = {'bet_size': np.zeros(NUM_TRIALS).astype('int'),
         }
 
 # Start with initial account and machine
-task['account'][0] = 500
+
 task['currency'] = currency
 task['block_order'] = block_order
 task['control_seq'] = control_seq
@@ -102,21 +105,26 @@ task['wheel1'] = False
 task['wheel2'] = False
 task['wheel3'] = False
 
-task['training'] = True
+if training:
+    task['training'] = True
+    START_TRIAL = 0
+    task['account'][START_TRIAL] = 500
+else:
+    task['training'] = False
+    START_TRIAL = 20
+    task['account'][START_TRIAL] = 2000
 
 # Set up initial screen 
 positions, buttons, sizes = get_screen_elements(c, task)
 
+if training:
+    instruction_screen(c,positions,sizes,RTB)
+    welcome_screen(c)
 
-instruction_screen(c,positions,sizes,RTB)
-welcome_screen(c)
-
-for trial in range(NUM_TRIALS):   
-
+for trial in range(START_TRIAL,NUM_TRIALS):   
     if trial == 0:
         begin_training_screen(c)
         background_music.play(100,0)
-
     if trial < 10:
         task['machine'] = 5
         task['wheel_hold_buttons'] = wheel_hold_bool[0]
@@ -124,9 +132,10 @@ for trial in range(NUM_TRIALS):
         task['machine'] = 6
         task['wheel_hold_buttons'] = wheel_hold_bool[1]
     elif trial == 20:
-        task['training'] = False
-        background_music.stop()
-        end_training_screen(c)
+        if training:
+            task['training'] = False
+            background_music.stop()
+            end_training_screen(c)
         task['account'][trial] = 2000
         task['machine'] = block_order[0]
         task['current_block'] = block_order[0]
@@ -174,11 +183,13 @@ for trial in range(NUM_TRIALS):
     task['trial_stage'] = 'guess'
     selector_pos = 1
 
-    if trial > 0:
+
+    if trial > 0 and training:
+        task['account'][trial] = task['account'][trial-1] 
+    elif trial > 20 and not training:
         task['account'][trial] = task['account'][trial-1] 
 
     task['reward_grade'][trial] = int(str(result_sequence[trial])[1])
-
     if task['account'][trial] < 5:
         savemat(matlab_output_file,task)
         c.exit_screen("Unfortunately you lost your money and the game is over! Thanks for playing!", font=c.title, font_color=GOLD)
