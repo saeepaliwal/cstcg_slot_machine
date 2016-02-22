@@ -289,9 +289,9 @@ class ChoiceTask():
             attn = pygame.image.load('./images/attn_cross.png').convert_alpha()
         self.screen.blit(attn,(self.screen_width/2 - attn.get_width()/2,self.screen_height/2 - attn.get_height()/2))
         pygame.display.update()
-        self.of.write('Attention screen on ' + repr(time.time()) + '\n')
+        #self.of.write('Attention screen on ' + repr(time.time()) + '\n')
         self.wait_fun(milliseconds=wait_time)
-        self.of.write('Attention screen off ' + repr(time.time()) + '\n')
+        #self.of.write('Attention screen off ' + repr(time.time()) + '\n')
 
     def blank_screen(self, time=0):
         self.screen.fill(self.background_color)

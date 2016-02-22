@@ -12,8 +12,10 @@ import serial
 from psychopy import core
 import sys
 
+import platform
 
-#from ctypes import windll
+if platform.system() == 'Windows': # Windows
+    from ctypes import windll
 
 
 # Define colors:
@@ -162,17 +164,17 @@ def process_rtb(positions,index, stage, hold_on):
     return events
 
 def selector(c,task,positions,index,selector_pos):
-    sel_positions=[(8,445), 
-               (8,525), 
-               (8,608), 
-               (8,679), 
-               (8,755), 
-               (180,445),
-               (180,530),
-               (180,600),
-               (180,682),
-               (180,755),
-               (100,800)]
+    sel_positions=[(8,445), # orange
+               (8,525), # grape
+               (8,608), # cherry
+               (8,679), # lemon
+               (8,755), # plum
+               (180,445), # bar
+               (180,530), # bell
+               (180,600), # watermelon
+               (180,682), # seven
+               (180,755), # jackpot
+               (100,800)] # loss
 
     pos = sel_positions[selector_pos-1]
     selected = False
@@ -280,7 +282,7 @@ def get_screen_elements(c, task):
     positions['machine'] = {}
     positions['machine']['base_x'] = c.center_x-(machines['1'].get_width()/2)
 
-    positions['machine']['base_y'] = 0
+    positions['machine']['base_y'] = 30
     positions['machine']['x1'] =  c.center_x-(machines['1'].get_width()/2) + 100 - 30
     positions['machine']['x2'] = c.center_x-(machines['1'].get_width()/2) + 300 - 30
     positions['machine']['x3'] = c.center_x-(machines['1'].get_width()/2) + 500 - 30
@@ -332,20 +334,20 @@ def make_hold_buttons(c,positions,sizes,task):
     buttons = {}
 
     buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-    caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+    caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
     if task['ungrey_wheel2']:
         buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-        caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+        caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
     else:
         buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+        caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
 
     if task['ungrey_wheel3']:   
         buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-        caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+        caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
     else: 
         buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-        caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+        caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
 
     return buttons
 
@@ -365,13 +367,13 @@ def make_buttons(c,positions,sizes,task,trial_stage):
 
         if task['wheel_hold_buttons']:
             buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+            caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
 
             buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+            caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
             
             buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+            caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
 
     elif trial_stage == 'pull' or trial_stage == 'result': 
         buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
@@ -385,20 +387,20 @@ def make_buttons(c,positions,sizes,task,trial_stage):
 
         if task['wheel_hold_buttons']:
             buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+            caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
             if task['ungrey_wheel2']:
                 buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-                caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+                caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
             else:
                 buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-                caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+                caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
 
             if task['ungrey_wheel3']:   
                 buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-                caption="Hold", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+                caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
             else: 
                 buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-                caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+                caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
     elif trial_stage == 'bet' or trial_stage == 'clear':
 
         buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
@@ -412,13 +414,13 @@ def make_buttons(c,positions,sizes,task,trial_stage):
 
         if task['wheel_hold_buttons']:
             buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+            caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
 
             buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+            caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
             
             buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Hold", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
+            caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
     return buttons
 
 def draw_screen(c, positions, buttons, sizes, task):
@@ -772,16 +774,14 @@ def show_result(c,positions,buttons,task, spinning=False):
         else:
             eeg_trigger(c,task,'stop_3_loss')
         pygame.display.flip()
-        waitfun(500)
+        waitfun(1000)
 
 def process_result(c,positions,buttons,sizes,task, RTB):
     wait = 190
+    
     if task['result_sequence'][task['trial']][0] == '1':
         task['reward_grade'][task['trial']] = int(task['result_sequence'][task['trial']][2])
         reward = multiplier[task['reward_grade'][task['trial']]-1]*task['bet_size'][task['trial']]
-
-        if task['guess_trace'][task['trial']]-1 == int(task['result_sequence'][task['trial']][2]):
-            reward = reward + 50
         task['winloss'][task['trial']] = reward
         waitfun(wait)
         win_screen(c,positions, buttons, sizes, task)
@@ -789,6 +789,14 @@ def process_result(c,positions,buttons,sizes,task, RTB):
         show_win_banner(c,positions, task,reward)
     elif task['result_sequence'][task['trial']][0] == '0' or task['result_sequence'][0] == '2': # loss or near miss 
         task['reward_grade'][task['trial']] = 0
+
+    
+    if task['result_sequence'][task['trial']][0] == '1':
+        if task['guess_trace'][task['trial']]+1 == int(task['result_sequence'][task['trial']][2]):
+            reward = reward + 50
+    elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 11:
+        reward = reward + 50
+
     if int(task['result_sequence'][task['trial']][4]) == 1:
         task = gamble(c, task, positions, sizes, RTB)
 
@@ -1023,8 +1031,10 @@ def spin_wheels(c, positions, buttons, task, RTB):
 
 
 def eeg_trigger(c,task,stage):
-    # port = windll.inpoutx64
-    # address = 45072
+
+    if platform.system() == 'Windows':
+        port = windll.inpoutx64
+        address = 45072
 
     if not task['training']:
         # Set value
@@ -1210,11 +1220,13 @@ def eeg_trigger(c,task,stage):
         trigger_on = value
         trigger_off = 0
 
-        #Send trigger
-        port.Out32(address,trigger_on)
-        core.wait(0.05)
-        port.Out32(address,trigger_off)
-
+        if platform.system() == 'Windows':
+            #Send trigger
+            port.Out32(address,trigger_on)
+            core.wait(0.05)
+            port.Out32(address,trigger_off)
+            print "Trigger: " + str(value)
+        else:
+            print "Trigger: " + str(value)
         c.log('EEG: Sent trigger ' + str(value) +  ' at ' + repr(time.time()) + '\n')
-        print "Trigger: " + str(value)
 

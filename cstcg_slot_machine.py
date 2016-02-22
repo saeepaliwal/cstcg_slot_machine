@@ -29,8 +29,12 @@ ue = u"ü";
 GOLD   = ( 254, 195,  13)
 
 leversound = pygame.mixer.Sound('./sounds/lever.wav')
-background_music = pygame.mixer.Sound('./sounds/machine1_music.wav')
-background_music.set_volume(0.1)
+background_music[0] = pygame.mixer.Sound('./sounds/machine1_music.wav')
+background_music[1] = pygame.mixer.Sound('./sounds/machine2_music.wav')
+background_music[2] = pygame.mixer.Sound('./sounds/machine2_music.wav')
+background_music[3] = pygame.mixer.Sound('./sounds/machine2_music.wav')
+for i in range(4):
+    background_music[i].set_volume(0.1)
 
 c = ChoiceTask(background_color=( 20, 20, 20), 
     title  = pygame.font.Font('./fonts/Lobster.ttf', 60),
@@ -46,22 +50,21 @@ matlab_output_file = c.create_output_file(subjectname)
 
 # Task trace:
 result_sequence = []
-wheel_hold_bool = [True, True]
+wheel_hold_bool = [False, True]
 block_order = []
 control_seq = []
 
 # Pull in training trials:
-with open ('taskBackend_training.txt','r') as f:
+with open ('./traces/taskBackend_training.txt','r') as f:
         probability_trace = f.read().replace('\n', '')
 result_sequence = probability_trace.split(',')
 
 # Randomize blocks for real trials
-# for j in range(4):
-#     block_order.append(random.randint(1,4));
 block_order = [1,2,3,4]
+random.shuffle(block_order)
 
 for b in block_order:
-    with open ('taskBackend_' + str(b) + '.txt','r') as f:
+    with open ('./traces/taskBackend_' + str(b) + '.txt','r') as f:
         probability_trace = f.read().replace('\n', '')
     block_sequence = probability_trace.split(',')
     if block_sequence[0] == 'CONTROL':
@@ -74,7 +77,9 @@ for b in block_order:
     result_sequence = result_sequence + block_sequence
     print "Block sequence: " + str(b)
 
+# Set trial switch specifications
 NUM_TRIALS = len(result_sequence)-1
+task_block_sequence=[10,20,50,80,110,140]
 
 # Define dictionary of task attributes:
 task = {'bet_size': np.zeros(NUM_TRIALS).astype('int'),
@@ -124,28 +129,29 @@ if training:
 for trial in range(START_TRIAL,NUM_TRIALS):   
     if trial == 0:
         begin_training_screen(c)
-        background_music.play(100,0)
-    if trial < 10:
+        background_music[0].play(100,0)
+    if trial < task_block_sequence[0]:
         task['machine'] = 5
         task['wheel_hold_buttons'] = wheel_hold_bool[0]
-    elif 10 <= trial < 20:
+    elif task_block_sequence[0] <= trial < task_block_sequence[1]:
         task['machine'] = 6
         task['wheel_hold_buttons'] = wheel_hold_bool[1]
-    elif trial == 20:
+    elif trial == task_block_sequence[1]:
         if training:
             task['training'] = False
-            background_music.stop()
+            background_music[0].stop()
             end_training_screen(c)
         task['account'][trial] = 2000
         task['machine'] = block_order[0]
         task['current_block'] = block_order[0]
         task['wheel_hold_buttons'] = wheel_hold_bool[2]
         welcome_screen(c)
-        background_music.play(100,0)
+        background_music[1].play(100,0)
         c.log('Starting block ' + str(block_order[0]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[3]) + ' at ' + repr(time.time()) + '\n')
-    elif trial == 65:
+    elif trial == task_block_sequence[2]:
+        background_music[1].stop()
         change_machine_screen(c)
         task['machine'] = block_order[1]
         task['current_block'] = block_order[1]
@@ -153,7 +159,9 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Starting block ' + str(block_order[1]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + ' at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[2]) + ' at ' + repr(time.time()) + '\n')
-    elif trial == 110:
+        background_music[2].play(100,0)
+    elif trial == task_block_sequence[3]:
+        background_music[2].stop()
         change_machine_screen(c)
         task['machine'] = block_order[2]
         task['current_block'] = block_order[2]
@@ -161,7 +169,9 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Starting block ' + str(block_order[2]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[3]) + ' at ' + repr(time.time()) + '\n')
-    elif trial == 155:
+        background_music[3].play(100,0)
+    elif trial == task_block_sequence[4]:
+        background_music[3].stop()
         change_machine_screen(c)
         task['machine'] = block_order[3]
         task['current_block'] = block_order[3]
@@ -169,6 +179,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Starting block ' + str(block_order[3]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[5]) + ' at ' + repr(time.time()) + '\n')
+        background_music[4].play(100,0)
     next_trial = False
 
 
@@ -192,7 +203,8 @@ for trial in range(START_TRIAL,NUM_TRIALS):
     task['reward_grade'][trial] = int(str(result_sequence[trial])[1])
     if task['account'][trial] < 5:
         savemat(matlab_output_file,task)
-        c.exit_screen("Unfortunately you lost your money and the game is over! Thanks for playing!", font=c.title, font_color=GOLD)
+        c.text_screen('Unfortunately you lost all your money. Luckily, you have 2000 extra points in storage that we have added to your account. Good luck!', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=5000)  
+        task['account'][trial] = task['account'][trial] + 2000
 
     # EEG: Trial on
     if not task['training']:
@@ -265,7 +277,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
                             else:
                                 spin_wheels(c, positions, buttons, task,RTB)
                                 show_result(c,positions,buttons,task)
-
+                            
                             task = process_result(c,positions,buttons,sizes,task, RTB)  
                             next_trial = True
                 elif event.type == pygame.QUIT:
@@ -279,7 +291,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
                 savemat(matlab_output_file,task)
 
 savemat(matlab_output_file,task)
-background_music.stop()
+background_music[3].stop()
 c.exit_screen("That ends the game! Thank you so much for playing! Goodbye!", font=c.title, font_color=GOLD)
 
 
