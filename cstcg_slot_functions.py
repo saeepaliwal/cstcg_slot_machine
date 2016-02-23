@@ -48,13 +48,22 @@ multiplier = [2,3,4,5,6,7,8,9,10]
 
 # Load instructions
 instructions = {}
-instructions['1'] = pygame.image.load('./images/Slide1.png').convert_alpha()
-instructions['2'] = pygame.image.load('./images/Slide2.png').convert_alpha()
-instructions['3'] = pygame.image.load('./images/Slide3.png').convert_alpha()
-instructions['4'] = pygame.image.load('./images/Slide4.png').convert_alpha()
-instructions['5'] = pygame.image.load('./images/Slide5.png').convert_alpha()
-instructions['6'] = pygame.image.load('./images/Slide6.png').convert_alpha()
-instructions['7'] = pygame.image.load('./images/Slide7.png').convert_alpha()
+instructions['1'] = pygame.image.load('./images/Slide01.png').convert_alpha()
+instructions['2'] = pygame.image.load('./images/Slide02.png').convert_alpha()
+instructions['3'] = pygame.image.load('./images/Slide03.png').convert_alpha()
+instructions['4'] = pygame.image.load('./images/Slide04.png').convert_alpha()
+instructions['5'] = pygame.image.load('./images/Slide05.png').convert_alpha()
+instructions['6'] = pygame.image.load('./images/Slide06.png').convert_alpha()
+instructions['7'] = pygame.image.load('./images/Slide07.png').convert_alpha()
+instructions['8'] = pygame.image.load('./images/Slide08.png').convert_alpha()
+instructions['9'] = pygame.image.load('./images/Slide09.png').convert_alpha()
+instructions['10'] = pygame.image.load('./images/Slide10.png').convert_alpha()
+instructions['11'] = pygame.image.load('./images/Slide11.png').convert_alpha()
+instructions['12'] = pygame.image.load('./images/Slide12.png').convert_alpha()
+instructions['13'] = pygame.image.load('./images/Slide13.png').convert_alpha()
+instructions['14'] = pygame.image.load('./images/Slide14.png').convert_alpha()
+instructions['15'] = pygame.image.load('./images/Slide15.png').convert_alpha()
+instructions['16'] = pygame.image.load('./images/Slide16.png').convert_alpha()
 
 # Load symbols
 symbols = {}

@@ -11,9 +11,9 @@ from scipy.io import savemat
 import platform
 
 
-testing = True
+testing = False
 response_box = True
-training = False
+training = True
 currency = 'points'
 
 
