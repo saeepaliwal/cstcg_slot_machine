@@ -765,6 +765,7 @@ def show_result(c,positions,buttons,task, spinning=False):
 
 def process_result(c,positions,buttons,sizes,task, RTB):
     wait = 190
+    reward = 0
     
     if task['result_sequence'][task['trial']][0] == '1':
         task['reward_grade'][task['trial']] = int(task['result_sequence'][task['trial']][2])
@@ -776,13 +777,14 @@ def process_result(c,positions,buttons,sizes,task, RTB):
         show_win_banner(c,positions, task,reward)
     elif task['result_sequence'][task['trial']][0] == '0' or task['result_sequence'][0] == '2': # loss or near miss 
         task['reward_grade'][task['trial']] = 0
-
-    
+   
     if task['result_sequence'][task['trial']][0] == '1':
         if task['guess_trace'][task['trial']] == int(task['result_sequence'][task['trial']][2]):
             reward = reward + 50
+            task['winloss'][task['trial']] = reward
     elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 1:
         reward = reward + 50
+        task['winloss'][task['trial']] = reward
 
     if int(task['result_sequence'][task['trial']][4]) == 1:
         task = gamble(c, task, positions, sizes, RTB)
@@ -1023,7 +1025,7 @@ def eeg_trigger(c,task,stage):
     if not task['training']:
         # Set value
         if stage == 'trial':
-            value = task['trial'] - 20
+            value = task['trial'] - task['num_training_trials']
         elif stage == 'guess_on':
             if task['current_block'] == 1:
                 value = 181

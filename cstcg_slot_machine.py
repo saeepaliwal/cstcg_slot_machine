@@ -14,6 +14,8 @@ response_box = True
 training = False
 currency = 'points'
 
+testing = True
+
 # Initialize response box:
 if response_box: 
     if platform.system() == 'Darwin': # Mac
@@ -32,8 +34,8 @@ leversound = pygame.mixer.Sound('./sounds/lever.wav')
 background_music = []
 background_music.append(pygame.mixer.Sound('./sounds/machine1_music.wav'))
 background_music.append(pygame.mixer.Sound('./sounds/machine2_music.wav'))
-background_music.append(pygame.mixer.Sound('./sounds/machine2_music.wav'))
-background_music.append(pygame.mixer.Sound('./sounds/machine2_music.wav'))
+background_music.append(pygame.mixer.Sound('./sounds/machine3_music.wav'))
+background_music.append(pygame.mixer.Sound('./sounds/machine4_music.wav'))
 for i in range(4):
     background_music[i].set_volume(0.1)
 
@@ -79,8 +81,14 @@ for b in block_order:
     print "Block sequence: " + str(b)
 
 # Set trial switch specifications
-NUM_TRIALS = len(result_sequence)-1
-task_block_sequence=[10,20,50,80,110,140]
+if testing:
+    NUM_TRIALS = 30
+    task_block_sequence=[10,20,22,24,26,28]
+else:     
+    NUM_TRIALS = len(result_sequence)-1
+    task_block_sequence=[10,20,50,80,110,140]
+
+
 
 # Define dictionary of task attributes:
 task = {'bet_size': np.zeros(NUM_TRIALS).astype('int'),
@@ -100,6 +108,9 @@ task['currency'] = currency
 task['block_order'] = block_order
 task['control_seq'] = control_seq
 
+# Training trials
+task['num_training_trials'] = task_block_sequence[1]
+
 # Times
 task['inter_wheel_interval'] = 700
 task['win_banner_interval'] = 1500
@@ -114,7 +125,7 @@ task['wheel3'] = False
 if training:
     task['training'] = True
     START_TRIAL = 0
-    task['account'][START_TRIAL] = 500
+    task['account'][START_TRIAL] = 2000
 else:
     task['training'] = False
     START_TRIAL = 20
@@ -131,7 +142,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
     if trial == 0:
         begin_training_screen(c)
         background_music[0].play(100,0)
-    elif trial < task_block_sequence[0]:
+    if trial < task_block_sequence[0]:
         task['machine'] = 5
         task['wheel_hold_buttons'] = wheel_hold_bool[0]
     elif task_block_sequence[0] <= trial < task_block_sequence[1]:
@@ -147,12 +158,12 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         task['current_block'] = block_order[0]
         task['wheel_hold_buttons'] = wheel_hold_bool[2]
         welcome_screen(c)
-        background_music[1].play(100,0)
+        background_music[0].play(100,0)
         c.log('Starting block ' + str(block_order[0]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[3]) + ' at ' + repr(time.time()) + '\n')
     elif trial == task_block_sequence[2]:
-        background_music[1].stop()
+        background_music[0].stop()
         change_machine_screen(c)
         task['machine'] = block_order[1]
         task['current_block'] = block_order[1]
@@ -160,9 +171,9 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Starting block ' + str(block_order[1]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + ' at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[2]) + ' at ' + repr(time.time()) + '\n')
-        background_music[2].play(100,0)
+        background_music[1].play(100,0)
     elif trial == task_block_sequence[3]:
-        background_music[2].stop()
+        background_music[1].stop()
         change_machine_screen(c)
         task['machine'] = block_order[2]
         task['current_block'] = block_order[2]
@@ -170,9 +181,9 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Starting block ' + str(block_order[2]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[3]) + ' at ' + repr(time.time()) + '\n')
-        background_music[3].play(100,0)
+        background_music[2].play(100,0)
     elif trial == task_block_sequence[4]:
-        background_music[3].stop()
+        background_music[2].stop()
         change_machine_screen(c)
         task['machine'] = block_order[3]
         task['current_block'] = block_order[3]
@@ -180,7 +191,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Starting block ' + str(block_order[3]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[5]) + ' at ' + repr(time.time()) + '\n')
-        background_music[4].play(100,0)
+        background_music[3].play(100,0)
     next_trial = False
 
 
@@ -246,10 +257,10 @@ for trial in range(START_TRIAL,NUM_TRIALS):
                         task['trial_stage'] = 'bet'
                         task['bet_size'][trial] += 50
                         eeg_trigger(c,task,'bet+')
-                        task['bet_sequence'].append(10)
+                        task['bet_sequence'].append(50)
                         task = update_account(c,positions, sizes, task)
                         display_assets(c,positions,sizes,task)
-                        c.log('Trial ' + str(trial) + ': Added 10 to bet. ' + repr(time.time()) + '\n')
+                        c.log('Trial ' + str(trial) + ': Added 50 to bet. ' + repr(time.time()) + '\n')
                     elif 'click' in buttons['clear'].handleEvent(event):
                         c.press_sound.play()
                         if len(task['bet_sequence']) > 0:   

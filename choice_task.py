@@ -454,7 +454,4 @@ class ChoiceTask():
         self.text_screen(text=exit_text, font=self.header, font_color=font_color)
         pygame.display.update()
         self.game_over_sound.play()
-        self.wait_fun(milliseconds=3000)
-        self.log('Exiting game ' + repr(time.time()))
-        exit()
 
