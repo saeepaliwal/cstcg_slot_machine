@@ -29,10 +29,11 @@ ue = u"ü";
 GOLD   = ( 254, 195,  13)
 
 leversound = pygame.mixer.Sound('./sounds/lever.wav')
-background_music[0] = pygame.mixer.Sound('./sounds/machine1_music.wav')
-background_music[1] = pygame.mixer.Sound('./sounds/machine2_music.wav')
-background_music[2] = pygame.mixer.Sound('./sounds/machine2_music.wav')
-background_music[3] = pygame.mixer.Sound('./sounds/machine2_music.wav')
+background_music = []
+background_music.append(pygame.mixer.Sound('./sounds/machine1_music.wav'))
+background_music.append(pygame.mixer.Sound('./sounds/machine2_music.wav'))
+background_music.append(pygame.mixer.Sound('./sounds/machine2_music.wav'))
+background_music.append(pygame.mixer.Sound('./sounds/machine2_music.wav'))
 for i in range(4):
     background_music[i].set_volume(0.1)
 
@@ -130,7 +131,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
     if trial == 0:
         begin_training_screen(c)
         background_music[0].play(100,0)
-    if trial < task_block_sequence[0]:
+    elif trial < task_block_sequence[0]:
         task['machine'] = 5
         task['wheel_hold_buttons'] = wheel_hold_bool[0]
     elif task_block_sequence[0] <= trial < task_block_sequence[1]:
@@ -243,7 +244,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
                     if 'click' in buttons['add_five'].handleEvent(event):  
                         c.press_sound.play()
                         task['trial_stage'] = 'bet'
-                        task['bet_size'][trial] += 10
+                        task['bet_size'][trial] += 50
                         eeg_trigger(c,task,'bet+')
                         task['bet_sequence'].append(10)
                         task = update_account(c,positions, sizes, task)

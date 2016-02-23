@@ -164,17 +164,17 @@ def process_rtb(positions,index, stage, hold_on):
     return events
 
 def selector(c,task,positions,index,selector_pos):
-    sel_positions=[(8,445), # orange
-               (8,525), # grape
-               (8,608), # cherry
-               (8,679), # lemon
-               (8,755), # plum
-               (180,445), # bar
-               (180,530), # bell
-               (180,600), # watermelon
-               (180,682), # seven
-               (180,755), # jackpot
-               (100,800)] # loss
+    sel_positions=[(100,445), # loss
+               (8,530), # orange
+               (8,608), # grape 
+               (8,679), # cherry 
+               (8,755), # lemon 
+               (8,800), # plum
+               (180,530), # bar 
+               (180,600), # bell 
+               (180,682), # watermelon
+               (180,755), # seven
+               (180,800)] # jackpot
 
     pos = sel_positions[selector_pos-1]
     selected = False
@@ -254,19 +254,6 @@ def get_screen_elements(c, task):
 
     positions['pull_x'] = c.center_x+(sizes['sh']/9) - x0
     positions['pull_y'] = c.center_y+(sizes['sh']/2)-(sizes['sbh']*1.1) - hold_offset
-    # else:
-    #     positions['clear_x'] = positions['bet_5_x']
-    #     positions['clear_y'] = c.center_y+(sizes['sh']/3)+2*sizes['sbw']/3 - hold_offset
-    #     positions['bet_5_x'] = c.left_center_x+(sizes['sh']/9) - x0
-    #     positions['bet_5_y'] = c.center_y+(sizes['sh']/3) - hold_offset
-
-    #     positions['bet_10_x'] = c.left_center_x+(0.32*sizes['sh']) - x0
-    #     positions['bet_10_y'] = c.center_y+(sizes['sh']/3) - hold_offset
-    #     positions['stop_y'] = c.center_y+(sizes['sh']/3) - hold_offset
-
-    #     positions['pull_x'] = c.center_x+(sizes['sh']/9) - x0
-    #     positions['pull_y'] = c.center_y+(sizes['sh']/3)-(sizes['sbh']*1.1) - hold_offset
-    
     positions['bet_screen_x'] = positions['bet_5_x']
     positions['bet_screen_y'] = positions['pull_y']
 
@@ -544,19 +531,19 @@ def instruction_screen(c,positions,sizes,RTB):
                 if event.type in (MOUSEBUTTONUP, MOUSEBUTTONDOWN):
                     if 'click' in next_button.handleEvent(event): 
                         counter += 1
-                        if counter == 8:
+                        if counter == len(instructions)+1:
                             instructions_done = True
                     elif 'click' in back_button.handleEvent(event):
                         if counter > 1:
                             counter  = counter - 1
-                if event.type == MOUSEBUTTONUP and counter < 8:
+                if event.type == MOUSEBUTTONUP and counter <= len(instructions):
                     c.blank_screen()
                     c.screen.blit(instructions[str(counter)],(c.center_x-instructions[str(counter)].get_width()/2,\
                         c.top_y-instructions[str(counter)].get_height()/8))  
                     if counter > 1:
                         back_button.draw(c.screen)
                     
-                    if counter == 7:
+                    if counter == len(instructions):
                         finish_button.draw(c.screen)
                     else:
                         next_button.draw(c.screen)
@@ -792,9 +779,9 @@ def process_result(c,positions,buttons,sizes,task, RTB):
 
     
     if task['result_sequence'][task['trial']][0] == '1':
-        if task['guess_trace'][task['trial']]+1 == int(task['result_sequence'][task['trial']][2]):
+        if task['guess_trace'][task['trial']] == int(task['result_sequence'][task['trial']][2]):
             reward = reward + 50
-    elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 11:
+    elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 1:
         reward = reward + 50
 
     if int(task['result_sequence'][task['trial']][4]) == 1:
@@ -1020,9 +1007,6 @@ def spin_wheels(c, positions, buttons, task, RTB):
                 show4 = True
             elif n-10 < round(time.time()*1000) % n < n and show4:
                 c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
-                # if task['machine'] == 2:
-                #     bet_label = c.title.render("Bet",True,RED) 
-                #     c.screen.blit(bet_label,(positions['bet_screen_x']+5, positions['bet_screen_y']-60))
                 pygame.display.flip()
                 show4 = False
                 show1 = True
