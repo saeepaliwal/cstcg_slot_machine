@@ -10,11 +10,13 @@ import numpy as np
 from scipy.io import savemat
 import platform
 
+
+testing = True
 response_box = True
 training = False
 currency = 'points'
 
-testing = True
+
 
 # Initialize response box:
 if response_box: 
