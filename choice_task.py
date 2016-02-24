@@ -25,6 +25,8 @@ class ChoiceTask():
     # screen_width = 900
     # screen_height = 600
     # screen = pygame.display.set_mode((screen_width,screen_height))
+    modes = pygame.display.list_modes()
+    screen = pygame.display.set_mode(modes[0],pygame.FULLSCREEN,16)
 
     center_x = screen_width/2
     left_x = screen_width/20
@@ -454,4 +456,7 @@ class ChoiceTask():
         self.text_screen(text=exit_text, font=self.header, font_color=font_color)
         pygame.display.update()
         self.game_over_sound.play()
+        self.wait_fun(milliseconds=30000)
+        self.log('Exiting game ' + repr(time.time()))
+        exit()
 

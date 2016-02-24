@@ -11,12 +11,11 @@ from scipy.io import savemat
 import platform
 
 
-testing = False
+testing = True
+training = False
+
 response_box = True
-training = True
 currency = 'points'
-
-
 
 # Initialize response box:
 if response_box: 
@@ -55,32 +54,34 @@ matlab_output_file = c.create_output_file(subjectname)
 
 # Task trace:
 result_sequence = []
-wheel_hold_bool = [False, True]
+wheel_hold_bool = [True, True]
 block_order = []
 control_seq = []
 
 # Pull in training trials:
-with open ('./traces/taskBackend_training.txt','r') as f:
-        probability_trace = f.read().replace('\n', '')
-result_sequence = probability_trace.split(',')
+if training:
+    with open ('./traces/taskBackend_training.txt','r') as f:
+            probability_trace = f.read().replace('\n', '')
+    result_sequence = probability_trace.split(',')
 
-# Randomize blocks for real trials
-block_order = [1,2,3,4]
-random.shuffle(block_order)
+else:
+    # Randomize blocks for real trials
+    block_order = [1,2,3,4]
+    random.shuffle(block_order)
 
-for b in block_order:
-    with open ('./traces/taskBackend_' + str(b) + '.txt','r') as f:
-        probability_trace = f.read().replace('\n', '')
-    block_sequence = probability_trace.split(',')
-    if block_sequence[0] == 'CONTROL':
-        wheel_hold_bool.append(True)
-        control_seq.append(1)
-    elif block_sequence[0] == 'NOCONTROL':
-        wheel_hold_bool.append(False)
-        control_seq.append(0)
-    block_sequence = block_sequence[1:]
-    result_sequence = result_sequence + block_sequence
-    print "Block sequence: " + str(b)
+    for b in block_order:
+        with open ('./traces/taskBackend_' + str(b) + '.txt','r') as f:
+            probability_trace = f.read().replace('\n', '')
+        block_sequence = probability_trace.split(',')
+        if block_sequence[0] == 'CONTROL':
+            wheel_hold_bool.append(True)
+            control_seq.append(1)
+        elif block_sequence[0] == 'NOCONTROL':
+            wheel_hold_bool.append(False)
+            control_seq.append(0)
+        block_sequence = block_sequence[1:]
+        result_sequence = result_sequence + block_sequence
+        print "Block sequence: " + str(b)
 
 # Set trial switch specifications
 if testing:
@@ -230,7 +231,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
 
     # EEG: Guess on
     eeg_trigger(c,task,'guess_on')
-
+    pygame.event.clear()
     while not next_trial:  
         pygame.time.wait(20)
         key_press = RTB.read() 
@@ -306,7 +307,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
 
 savemat(matlab_output_file,task)
 background_music[3].stop()
-c.exit_screen("That ends the game! Thank you so much for playing! Goodbye!", font=c.title, font_color=GOLD)
+c.exit_screen("Das Slotmachinen Spiel fertig. Vielen Dank, dass Sie mitgemacht haben!", font=c.title, font_color=GOLD)
 
 
 

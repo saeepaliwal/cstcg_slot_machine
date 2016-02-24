@@ -48,22 +48,22 @@ multiplier = [2,3,4,5,6,7,8,9,10]
 
 # Load instructions
 instructions = {}
-instructions['1'] = pygame.image.load('./images/Slide01.png').convert_alpha()
-instructions['2'] = pygame.image.load('./images/Slide02.png').convert_alpha()
-instructions['3'] = pygame.image.load('./images/Slide03.png').convert_alpha()
-instructions['4'] = pygame.image.load('./images/Slide04.png').convert_alpha()
-instructions['5'] = pygame.image.load('./images/Slide05.png').convert_alpha()
-instructions['6'] = pygame.image.load('./images/Slide06.png').convert_alpha()
-instructions['7'] = pygame.image.load('./images/Slide07.png').convert_alpha()
-instructions['8'] = pygame.image.load('./images/Slide08.png').convert_alpha()
-instructions['9'] = pygame.image.load('./images/Slide09.png').convert_alpha()
-instructions['10'] = pygame.image.load('./images/Slide10.png').convert_alpha()
-instructions['11'] = pygame.image.load('./images/Slide11.png').convert_alpha()
-instructions['12'] = pygame.image.load('./images/Slide12.png').convert_alpha()
-instructions['13'] = pygame.image.load('./images/Slide13.png').convert_alpha()
-instructions['14'] = pygame.image.load('./images/Slide14.png').convert_alpha()
-instructions['15'] = pygame.image.load('./images/Slide15.png').convert_alpha()
-instructions['16'] = pygame.image.load('./images/Slide16.png').convert_alpha()
+instructions['1'] = pygame.image.load('./instructions/Slide01.png').convert_alpha()
+instructions['2'] = pygame.image.load('./instructions/Slide02.png').convert_alpha()
+instructions['3'] = pygame.image.load('./instructions/Slide03.png').convert_alpha()
+instructions['4'] = pygame.image.load('./instructions/Slide04.png').convert_alpha()
+instructions['5'] = pygame.image.load('./instructions/Slide05.png').convert_alpha()
+instructions['6'] = pygame.image.load('./instructions/Slide06.png').convert_alpha()
+instructions['7'] = pygame.image.load('./instructions/Slide07.png').convert_alpha()
+instructions['8'] = pygame.image.load('./instructions/Slide08.png').convert_alpha()
+instructions['9'] = pygame.image.load('./instructions/Slide09.png').convert_alpha()
+instructions['10'] = pygame.image.load('./instructions/Slide10.png').convert_alpha()
+instructions['11'] = pygame.image.load('./instructions/Slide11.png').convert_alpha()
+instructions['12'] = pygame.image.load('./instructions/Slide12.png').convert_alpha()
+instructions['13'] = pygame.image.load('./instructions/Slide13.png').convert_alpha()
+instructions['14'] = pygame.image.load('./instructions/Slide14.png').convert_alpha()
+instructions['15'] = pygame.image.load('./instructions/Slide15.png').convert_alpha()
+instructions['16'] = pygame.image.load('./instructions/Slide16.png').convert_alpha()
 
 # Load symbols
 symbols = {}
@@ -173,16 +173,16 @@ def process_rtb(positions,index, stage, hold_on):
     return events
 
 def selector(c,task,positions,index,selector_pos):
-    sel_positions=[(100,445), # loss
-               (8,530), # orange
-               (8,608), # grape 
-               (8,679), # cherry 
-               (8,755), # lemon 
+    sel_positions=[(90,430), # loss
+               (8,500), # orange
+               (8,580), # grape 
+               (8,650), # cherry 
+               (8,730), # lemon 
                (8,800), # plum
-               (180,530), # bar 
-               (180,600), # bell 
-               (180,682), # watermelon
-               (180,755), # seven
+               (180,500), # bar 
+               (180,580), # bell 
+               (180,650),#watermelon
+               (180,730),#seven
                (180,800)] # jackpot
 
     pos = sel_positions[selector_pos-1]
@@ -317,7 +317,7 @@ def display_assets(c,positions,sizes,task):
     if task['currency'] == 'AUD':
         account_banner = c.header.render("Account (AUD)",True,GOLD) 
     elif task['currency'] == 'points':
-        account_banner = c.header.render("Account (points)",True,GOLD) 
+        account_banner = c.header.render("Kontostand (points)",True,GOLD) 
     c.screen.blit(account_banner, (positions['scoreboard_x'] + 10,positions['account_screen_y'] + 10))
     
     account_balance = money_font.render(str(task['account'][task['trial']]), True, RED)
@@ -358,7 +358,7 @@ def make_buttons(c,positions,sizes,task,trial_stage):
         caption="-", fgcolor=c.background_color, bgcolor=GRAY, font=big_button)
 
         buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],sizes['bbh']),\
-        caption="Spin", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
+        caption="Drehen", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
 
 
         if task['wheel_hold_buttons']:
@@ -379,7 +379,7 @@ def make_buttons(c,positions,sizes,task,trial_stage):
         caption="-", fgcolor=c.background_color, bgcolor=GRAY, font=big_button)
 
         buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],sizes['bbh']),\
-        caption="Spin", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
+        caption="Drehen", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
 
         if task['wheel_hold_buttons']:
             buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
@@ -406,7 +406,7 @@ def make_buttons(c,positions,sizes,task,trial_stage):
         caption="-", fgcolor=c.background_color, bgcolor=GREEN, font=big_button)
 
         buttons['pull'] = SlotButton(rect=(positions['pull_x'],positions['pull_y'], sizes['mbw'],sizes['bbh']),\
-        caption="Spin", fgcolor=c.background_color, bgcolor=PURPLE, font=c.header)
+        caption="Drehen", fgcolor=c.background_color, bgcolor=PURPLE, font=c.header)
 
         if task['wheel_hold_buttons']:
             buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
@@ -513,12 +513,12 @@ def welcome_screen(c, wait_time=3000):
 def instruction_screen(c,positions,sizes,RTB):
 
     back_button = SlotButton(rect=(positions['gamble_x'],positions['gamble_y'], sizes['bbw'],sizes['sbh']),\
-        caption="Back",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
+        caption="Zurueck",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
     next_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
-        caption="Next", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
+        caption="Weiter", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
 
     finish_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
-        caption="Finish", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
+        caption="Fertig", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
 
     counter = 1
     c.blank_screen()
@@ -562,20 +562,20 @@ def begin_training_screen(c):
     c.blank_screen()
     c.log('Training beginning at ' + repr(time.time()) + '\n')
 
-    c.text_screen('The next 20 trials are training trials. They will not count towards your final score.', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
+    c.text_screen('Die naechsten 20 Spiele sind zum Ueben da. Die Punkte zaehlen nicht zu ihrem Endergebnis dazu.', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
 
 def end_training_screen(c):
     waitfun(1000)
     c.log('Training end at ' + repr(time.time()) + '\n')
     c.blank_screen()
-    c.text_screen('Training is complete. The game will begin now! Good luck!', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
+    c.text_screen('Das Training ist fertig. Das Spiel beginnt jetzt! Viel Glueck!', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
 
 
 def change_machine_screen(c):
     waitfun(1000)
     c.log('Changing machines at ' + repr(time.time()) + '\n')
     c.blank_screen()
-    c.text_screen('Well done! Now onto a new machine!', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
+    c.text_screen('Gut gemacht! Jetzt geht es weiter auf der naechsten Maschine!', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
 
 
 def waitfun(milliseconds):
@@ -621,7 +621,7 @@ def win_screen(c,positions, buttons, sizes, task):
 def show_win_banner(c,positions,task,reward):
     c.screen.blit(win_banner,(positions['banner_x'],positions['banner_y'])) 
     winsound.play()
-    c.text_screen('You won ' + str(reward) + ' points!', font=c.title, valign='top', y_displacement= -45, wait_time=task['win_banner_interval'])
+    c.text_screen( str(reward) + ' points gewonnen!', font=c.title, valign='top', y_displacement= -45, wait_time=task['win_banner_interval'])
 
 
 def gamble(c,task, positions, sizes, RTB):
@@ -637,7 +637,7 @@ def gamble(c,task, positions, sizes, RTB):
     y_pos = c.center_y-card_back.get_height()/2
 
     c.blank_screen()
-    c.make_banner(c.title.render("Double or nothing?", True, GOLD))
+    c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
     c.screen.blit(card_back,(x_pos,y_pos))
 
     eeg_trigger(c,task,'gamble_screen')
@@ -647,7 +647,7 @@ def gamble(c,task, positions, sizes, RTB):
     gamble_button = SlotButton(rect=(positions['gamble_x'],positions['gamble_y'], sizes['bbw'],sizes['sbh']),\
         caption="Gamble",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
     no_gamble_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
-        caption="No thanks.", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
+        caption="Nein danke.", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
 
     gamble_button.draw(c.screen)
     no_gamble_button.draw(c.screen)
@@ -737,13 +737,13 @@ def show_result(c,positions,buttons,task, spinning=False):
             eeg_trigger(c,task,'automatic_stop_1')
             c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
             c.screen.blit(symbols[task['result_sequence'][task['trial']][1]],(positions['machine']['x1'],positions['machine']['y']))
-            pygame.display.flip()
-            waitfun(wait)
+            #pygame.display.flip()
+            #waitfun(wait)
 
             eeg_trigger(c,task,'automatic_stop_2')
             c.screen.blit(symbols[task['result_sequence'][task['trial']][2]],(positions['machine']['x2'],positions['machine']['y']))
-            pygame.display.flip()
-            waitfun(wait)
+            #pygame.display.flip()
+            #waitfun(wait)
 
             if task['result_sequence'][task['trial']][0] == '1':
                 eeg_trigger(c,task,'automatic_stop_3_win')
