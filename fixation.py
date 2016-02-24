@@ -11,11 +11,13 @@ from scipy.io import savemat
 import platform
 pygame.init()
 
-from ctypes import windll
 
 trigger_off = 0
-port = windll.inpoutx64
-address = 45072
+
+if platform.system() == 'Windows': # Windows
+    from ctypes import windll
+    port = windll.inpoutx64
+    address = 45072
 
 if platform.system() == 'Darwin': # Mac
     RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
@@ -45,18 +47,25 @@ while waiting:
         key_index = ord(key_press)
 
         if key_index == 1:
-            print "Sent"
+
             #Send trigger
-            port.Out32(address,1)
-            core.wait(0.05)
-            port.Out32(address,trigger_off)
+            if platform.system() == 'Windows': 
+                port.Out32(address,1)
+                core.wait(0.05)
+                port.Out32(address,trigger_off)
+            elif platform.system() == 'Darwin':
+                print "Sent start trigger"
 
             c.attn_screen(attn=None,wait_time=240000)
+
             waiting = False
 
 #Send trigger
 print "Done"
-port.Out32(address,2)
-core.wait(0.05)
-port.Out32(address,trigger_off)
 
+if platform.system() == 'Windows': 
+    port.Out32(address,2)
+    core.wait(0.05)
+    port.Out32(address,trigger_off)
+elif platform.system() == 'Darwin':
+    print "Sent endtrigger"
