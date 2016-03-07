@@ -117,7 +117,7 @@ def is_odd(num):
     return num & 0x1
 
 
-def process_rtb(positions,index, stage, hold_on):
+def process_rtb(positions,index, stage, hold_on,task=None):
     fix = 50
     events = []
     event_set = False
@@ -151,14 +151,21 @@ def process_rtb(positions,index, stage, hold_on):
              #   event_set = True
         elif stage == 'pull' and hold_on:
             if index == 1:
-                event1.pos = (positions['hold1_x']+fix, positions['hold_y']+fix)
-                event_set = True
-            elif index == 2:
-                event1.pos = (positions['hold2_x']+fix, positions['hold_y']+fix)
-                event_set = True
-            elif index == 4:
-                event1.pos = (positions['hold3_x']+fix, positions['hold_y']+fix)
-                event_set = True
+                if not task['wheel1'] and not task['wheel2'] and not task['wheel3']:
+                    event1.pos = (positions['hold1_x']+fix, positions['hold_y']+fix)
+                    event_set = True
+                elif task['wheel1'] and not task['wheel2'] and not task['wheel3']:
+                    event1.pos = (positions['hold2_x']+fix, positions['hold_y']+fix)
+                    event_set = True
+                elif task['wheel2'] and task['wheel2'] and not task['wheel3']:
+                    event1.pos = (positions['hold3_x']+fix, positions['hold_y']+fix)
+                    event_set = True
+            # elif index == 2:
+            #     event1.pos = (positions['hold2_x']+fix, positions['hold_y']+fix)
+            #     event_set = True
+            # elif index == 4:
+            #     event1.pos = (positions['hold3_x']+fix, positions['hold_y']+fix)
+            #     event_set = True
         elif stage == 'gamble':
             if index == 1:
                 event1.pos = (positions['gamble_x'],positions['gamble_y'])
@@ -500,7 +507,7 @@ def cashout(c, positions, buttons, sizes, task):
         c.text_screen('Leaving the casino!', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=3000)  
         c.blank_screen()
         c.text_screen('Entering the casino on a new day!', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=3000)  
-        welcome_screen(c) 
+        #welcome_screen(c) 
         c.blank_screen()
     
 
@@ -562,7 +569,7 @@ def begin_training_screen(c):
     c.blank_screen()
     c.log('Training beginning at ' + repr(time.time()) + '\n')
 
-    c.text_screen('Die naechsten 20 Spiele sind zum Ueben da. Die Punkte zaehlen nicht zu ihrem Endergebnis dazu.', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
+    c.text_screen('Die naechsten 10 Spiele sind zum Ueben da. Die Punkte zaehlen nicht zu ihrem Endergebnis dazu.', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
 
 def end_training_screen(c):
     waitfun(1000)
@@ -726,6 +733,7 @@ def show_result(c,positions,buttons,task, spinning=False):
                 c.screen.blit(symbols[task['result_sequence'][task['trial']][2]],(positions['machine']['x2'],positions['machine']['y']))
 
             if task['wheel3']:
+                print "Pressed wheel 3"
                 if task['result_sequence'][task['trial']][0] == '1':
                     eeg_trigger(c,task,'pressed_stop_3_win')
                 else:
@@ -770,7 +778,7 @@ def show_result(c,positions,buttons,task, spinning=False):
         else:
             eeg_trigger(c,task,'stop_3_loss')
         pygame.display.flip()
-        waitfun(1000)
+        waitfun(wait)
 
 def process_result(c,positions,buttons,sizes,task, RTB):
     wait = 190
@@ -789,10 +797,13 @@ def process_result(c,positions,buttons,sizes,task, RTB):
    
     if task['result_sequence'][task['trial']][0] == '1':
         if task['guess_trace'][task['trial']] == int(task['result_sequence'][task['trial']][2]):
-            reward = reward + 50
+            reward = reward + 200
             task['winloss'][task['trial']] = reward
     elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 1:
-        reward = reward + 50
+        reward = reward + 200
+        task['winloss'][task['trial']] = reward
+    else:
+        reward = reward - 200
         task['winloss'][task['trial']] = reward
 
     if int(task['result_sequence'][task['trial']][4]) == 1:
@@ -823,7 +834,7 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
         key_press = RTB.read() 
         if len(key_press):
             key_index = ord(key_press)
-            events = process_rtb(positions,key_index, 'pull', task['wheel_hold_buttons'])
+            events = process_rtb(positions,key_index, 'pull', task['wheel_hold_buttons'], task)
             if len(events) > 0:
                 pygame.event.post(events[0])
                 pygame.event.post(events[1])
@@ -845,49 +856,31 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
                         pygame.display.update()
                     elif event.type==MOUSEBUTTONUP:
                         if 'click' in buttons['hold1'].handleEvent(event):
-                            c.press_sound.play()
+                            task['wheel1'] = True
+                            c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))      
+                            show_result(c,positions,buttons,task,spinning=True)
+                            #c.press_sound.play()
                             buttons['hold1'].draw(c.screen)
                             pygame.display.update()
-                            task['wheel1'] = True
      
-                            if task['wheel2'] and task['wheel3']:
-                                buttons['pull'].handleEvent(event)
-                                buttons['pull'].draw(c.screen)
-                                c.wait_fun(100)                  
-                                c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))      
-                                show_result(c,positions,buttons,task,spinning=True)
-                                pygame.display.update()
-                                counter = 40
                         if task['ungrey_wheel2']:
                             if 'click' in buttons['hold2'].handleEvent(event):
-                                c.press_sound.play()
+                                task['wheel2'] = True
+                                c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
+                                show_result(c,positions,buttons,task, spinning=True)
+                                #c.press_sound.play()
                                 buttons['hold2'].draw(c.screen)
                                 pygame.display.update()
-                                task['wheel2'] = True
 
-                                if task['wheel1'] and task['wheel3']:
-                                    buttons['pull'].handleEvent(event)
-                                    buttons['pull'].draw(c.screen)           
-                                    c.wait_fun(100)
-                                    c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
-                                    show_result(c,positions,buttons,task, spinning=True)
-                                    pygame.display.update()
-                                    counter = 40
                         if task['ungrey_wheel3']:
                             if 'click' in buttons['hold3'].handleEvent(event):
-                                c.press_sound.play()
+                                task['wheel3'] = True
+                                c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
+                                show_result(c,positions,buttons,task, spinning=True)
+                                #c.press_sound.play()
                                 buttons['hold3'].draw(c.screen)
                                 pygame.display.update()
-                                task['wheel3'] = True
-
-                                if task['wheel1'] and task['wheel2']:
-                                    buttons['pull'].handleEvent(event)
-                                    buttons['pull'].draw(c.screen)
-                                    c.wait_fun(100)
-                                    c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
-                                    show_result(c,positions,buttons,task, spinning=True)
-                                    pygame.display.update()
-                                    counter = 40
+                                counter = 40
         else:
             if 0 < round(time.time()*1000) % n < n/4 and show1:
                 if not task['wheel1']:
@@ -944,7 +937,7 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
         c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
         show_result(c,positions,buttons,task, spinning=False)
         pygame.display.flip()
-    c.wait_fun(500)
+    #c.wait_fun(500)
     spinsound.stop()
 
 

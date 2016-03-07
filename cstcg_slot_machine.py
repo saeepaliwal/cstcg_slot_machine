@@ -13,7 +13,6 @@ import platform
 
 testing = True
 training = False
-
 response_box = True
 currency = 'points'
 
@@ -40,6 +39,7 @@ background_music.append(pygame.mixer.Sound('./sounds/machine4_music.wav'))
 for i in range(4):
     background_music[i].set_volume(0.1)
 
+pygame.mouse.set_visible(False)
 c = ChoiceTask(background_color=( 20, 20, 20), 
     title  = pygame.font.Font('./fonts/Lobster.ttf', 60),
     body  = pygame.font.Font('./fonts/Oswald-Bold.ttf', 30),
@@ -54,7 +54,7 @@ matlab_output_file = c.create_output_file(subjectname)
 
 # Task trace:
 result_sequence = []
-wheel_hold_bool = [True, True]
+wheel_hold_bool = [True, False]
 block_order = []
 control_seq = []
 
@@ -85,8 +85,8 @@ else:
 
 # Set trial switch specifications
 if testing:
-    NUM_TRIALS = 30
-    task_block_sequence=[10,20,22,24,26,28]
+    NUM_TRIALS = 20
+    task_block_sequence=[5,10,12,14,16,18]
 else:     
     NUM_TRIALS = len(result_sequence)-1
     task_block_sequence=[10,20,50,80,110,140]
@@ -131,7 +131,7 @@ if training:
     task['account'][START_TRIAL] = 2000
 else:
     task['training'] = False
-    START_TRIAL = 20
+    START_TRIAL = 10
     task['account'][START_TRIAL] = 2000
 
 # Set up initial screen 
@@ -139,7 +139,7 @@ positions, buttons, sizes = get_screen_elements(c, task)
 
 if training:
     instruction_screen(c,positions,sizes,RTB)
-    welcome_screen(c)
+    #welcome_screen(c)
 
 for trial in range(START_TRIAL,NUM_TRIALS):   
     if trial == 0:
@@ -160,7 +160,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         task['machine'] = block_order[0]
         task['current_block'] = block_order[0]
         task['wheel_hold_buttons'] = wheel_hold_bool[2]
-        welcome_screen(c)
+        #welcome_screen(c)
         background_music[0].play(100,0)
         c.log('Starting block ' + str(block_order[0]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
@@ -169,6 +169,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         background_music[0].stop()
         change_machine_screen(c)
         task['machine'] = block_order[1]
+        task['account'][trial] = 2000
         task['current_block'] = block_order[1]
         task['wheel_hold_buttons'] = wheel_hold_bool[3]
         c.log('Starting block ' + str(block_order[1]) + ' at ' + repr(time.time()) + '\n')
@@ -179,6 +180,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         background_music[1].stop()
         change_machine_screen(c)
         task['machine'] = block_order[2]
+        task['account'][trial] = 2000
         task['current_block'] = block_order[2]
         task['wheel_hold_buttons'] = wheel_hold_bool[4]
         c.log('Starting block ' + str(block_order[2]) + ' at ' + repr(time.time()) + '\n')
@@ -189,6 +191,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         background_music[2].stop()
         change_machine_screen(c)
         task['machine'] = block_order[3]
+        task['account'][trial] = 2000
         task['current_block'] = block_order[3]
         task['wheel_hold_buttons'] = wheel_hold_bool[5]
         c.log('Starting block ' + str(block_order[3]) + ' at ' + repr(time.time()) + '\n')
@@ -212,14 +215,14 @@ for trial in range(START_TRIAL,NUM_TRIALS):
 
     if trial > 0 and training:
         task['account'][trial] = task['account'][trial-1] 
-    elif trial > 20 and not training:
+    elif trial > 20 and not training and trial not in task_block_sequence:
         task['account'][trial] = task['account'][trial-1] 
 
     task['reward_grade'][trial] = int(str(result_sequence[trial])[1])
-    if task['account'][trial] < 5:
-        savemat(matlab_output_file,task)
-        c.text_screen('Unfortunately you lost all your money. Luckily, you have 2000 extra points in storage that we have added to your account. Good luck!', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=5000)  
-        task['account'][trial] = task['account'][trial] + 2000
+    # if task['account'][trial] < 5:
+    #     savemat(matlab_output_file,task)
+    #     c.text_screen('Unfortunately you lost all your money. Luckily, you have 2000 extra points in storage that we have added to your account. Good luck!', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=5000)  
+    #     task['account'][trial] = task['account'][trial] + 2000
 
     # EEG: Trial on
     if not task['training']:
@@ -307,7 +310,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
 
 savemat(matlab_output_file,task)
 background_music[3].stop()
-c.exit_screen("Das Slotmachinen Spiel fertig. Vielen Dank, dass Sie mitgemacht haben!", font=c.title, font_color=GOLD)
+c.exit_screen("Das Slotmaschinen Spiel ist fertig. Vielen Dank, dass Sie mitgemacht haben!", font=c.title, font_color=GOLD)
 
 
 
