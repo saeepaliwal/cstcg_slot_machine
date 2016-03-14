@@ -9,12 +9,14 @@ import random
 import numpy as np
 from scipy.io import savemat
 import platform
+import pdb
 
 
-testing = True
-training = False
+
+training = False #input
 response_box = True
 currency = 'points'
+testing = True
 
 # Initialize response box:
 if response_box: 
@@ -86,7 +88,7 @@ else:
 # Set trial switch specifications
 if testing:
     NUM_TRIALS = 20
-    task_block_sequence=[5,10,12,14,16,18]
+    task_block_sequence=[5,10,13,16,25,30]
 else:     
     NUM_TRIALS = len(result_sequence)-1
     task_block_sequence=[10,20,50,80,110,140]
@@ -215,7 +217,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
 
     if trial > 0 and training:
         task['account'][trial] = task['account'][trial-1] 
-    elif trial > 20 and not training and trial not in task_block_sequence:
+    elif trial > task_block_sequence[1] and not training and trial not in task_block_sequence:
         task['account'][trial] = task['account'][trial-1] 
 
     task['reward_grade'][trial] = int(str(result_sequence[trial])[1])

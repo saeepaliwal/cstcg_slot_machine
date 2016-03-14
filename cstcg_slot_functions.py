@@ -180,6 +180,18 @@ def process_rtb(positions,index, stage, hold_on,task=None):
     return events
 
 def selector(c,task,positions,index,selector_pos):
+
+    # sel_positions=[(85,360), # loss
+    #        (8,430), # orange
+    #        (8,510), # grape 
+    #        (8,580), # cherry 
+    #        (8,660), # lemon 
+    #        (8,730), # plum
+    #        (180,430), # bar 
+    #        (180,510), # bell 
+    #        (180,580),#watermelon
+    #        (180,660),#seven
+    #        (180,730)] # jackpot
     sel_positions=[(90,430), # loss
                (8,500), # orange
                (8,580), # grape 
@@ -286,6 +298,7 @@ def get_screen_elements(c, task):
     positions['machine']['base_x'] = c.center_x-(machines['1'].get_width()/2)
 
     positions['machine']['base_y'] = 30
+   # positions['machine']['base_y'] = 0
     positions['machine']['x1'] =  c.center_x-(machines['1'].get_width()/2) + 100 - 30
     positions['machine']['x2'] = c.center_x-(machines['1'].get_width()/2) + 300 - 30
     positions['machine']['x3'] = c.center_x-(machines['1'].get_width()/2) + 500 - 30
@@ -324,7 +337,7 @@ def display_assets(c,positions,sizes,task):
     if task['currency'] == 'AUD':
         account_banner = c.header.render("Account (AUD)",True,GOLD) 
     elif task['currency'] == 'points':
-        account_banner = c.header.render("Kontostand (points)",True,GOLD) 
+        account_banner = c.header.render("Kontostand (pts)",True,GOLD) 
     c.screen.blit(account_banner, (positions['scoreboard_x'] + 10,positions['account_screen_y'] + 10))
     
     account_balance = money_font.render(str(task['account'][task['trial']]), True, RED)
@@ -510,8 +523,6 @@ def cashout(c, positions, buttons, sizes, task):
         #welcome_screen(c) 
         c.blank_screen()
     
-
-
 def welcome_screen(c, wait_time=3000):
     c.blank_screen()
     winsound.play()
@@ -783,28 +794,28 @@ def show_result(c,positions,buttons,task, spinning=False):
 def process_result(c,positions,buttons,sizes,task, RTB):
     wait = 190
     reward = 0
+
+   
+    if task['result_sequence'][task['trial']][0] == '1':
+        if task['guess_trace'][task['trial']] == int(task['result_sequence'][task['trial']][2]):
+            reward = reward + 200           
+    elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 1:
+        reward = reward + 200
+    else:
+        reward = reward - 200
     
     if task['result_sequence'][task['trial']][0] == '1':
         task['reward_grade'][task['trial']] = int(task['result_sequence'][task['trial']][2])
-        reward = multiplier[task['reward_grade'][task['trial']]-1]*task['bet_size'][task['trial']]
+        reward = reward + multiplier[task['reward_grade'][task['trial']]-1]*task['bet_size'][task['trial']]
         task['winloss'][task['trial']] = reward
         waitfun(wait)
         win_screen(c,positions, buttons, sizes, task)
         eeg_trigger(c,task,'money_banner')
         show_win_banner(c,positions, task,reward)
-    elif task['result_sequence'][task['trial']][0] == '0' or task['result_sequence'][0] == '2': # loss or near miss 
-        task['reward_grade'][task['trial']] = 0
-   
-    if task['result_sequence'][task['trial']][0] == '1':
-        if task['guess_trace'][task['trial']] == int(task['result_sequence'][task['trial']][2]):
-            reward = reward + 200
-            task['winloss'][task['trial']] = reward
-    elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 1:
-        reward = reward + 200
-        task['winloss'][task['trial']] = reward
-    else:
-        reward = reward - 200
-        task['winloss'][task['trial']] = reward
+    # elif task['result_sequence'][task['trial']][0] == '0' or task['result_sequence'][0] == '2': # loss or near miss 
+    #     task['reward_grade'][task['trial']] = 0
+
+    task['winloss'][task['trial']] = reward
 
     if int(task['result_sequence'][task['trial']][4]) == 1:
         task = gamble(c, task, positions, sizes, RTB)
