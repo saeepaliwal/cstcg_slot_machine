@@ -11,8 +11,6 @@ from scipy.io import savemat
 import platform
 import pdb
 
-
-
 training = False #input
 response_box = True
 currency = 'points'
@@ -56,7 +54,7 @@ matlab_output_file = c.create_output_file(subjectname)
 
 # Task trace:
 result_sequence = []
-wheel_hold_bool = [True, False]
+wheel_hold_bool = [False, True]
 block_order = []
 control_seq = []
 
@@ -88,10 +86,10 @@ else:
 # Set trial switch specifications
 if testing:
     NUM_TRIALS = 20
-    task_block_sequence=[5,10,13,16,25,30]
+    task_block_sequence=[3,6,9,12,15,18]
 else:     
     NUM_TRIALS = len(result_sequence)-1
-    task_block_sequence=[10,20,50,80,110,140]
+    task_block_sequence=[3,6,36,66,96,126]
 
 
 
@@ -133,7 +131,7 @@ if training:
     task['account'][START_TRIAL] = 2000
 else:
     task['training'] = False
-    START_TRIAL = 10
+    START_TRIAL = task_block_sequence[1]
     task['account'][START_TRIAL] = 2000
 
 # Set up initial screen 
@@ -231,16 +229,24 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Trial ' + str(trial) + ': Starting trial now, with condition ' + str(task['current_block']) + ' at ' +  repr(time.time()) + '\n')
     eeg_trigger(c,task,'trial')
 
+    pygame.event.clear()
     buttons, task = draw_screen(c, positions, buttons, sizes, task)
+
+    if task['training']:
+        show_instruction(c,'1')
+        draw_screen(c, positions, buttons, sizes, task)
     selector_pos, selected = selector(c,task,positions,0,selector_pos)
+    pygame.event.clear()
 
     # EEG: Guess on
     eeg_trigger(c,task,'guess_on')
-    pygame.event.clear()
+    RTB.reset_input_buffer()
     while not next_trial:  
         pygame.time.wait(20)
+        pygame.event.clear()
         key_press = RTB.read() 
-        if len(key_press):
+        if len(key_press):     
+            RTB.reset_input_buffer()
             key_index = ord(key_press)
 
             if task['trial_stage'] == 'guess':
@@ -279,7 +285,11 @@ for trial in range(START_TRIAL,NUM_TRIALS):
                             task = update_account(c,positions, sizes, task)
                             display_assets(c,positions,sizes,task)
                     elif 'click' in buttons['pull'].handleEvent(event):
+
                         if task['bet_size'][trial] > 0:
+                            if task['training']:
+                                if task['wheel_hold_buttons']:
+                                    show_instruction(c,'4')
                             task['trial_stage'] = 'pull'
                             buttons, task = draw_screen(c, positions, buttons, sizes, task)
                             buttons['pull'].draw(c.screen)
@@ -307,12 +317,16 @@ for trial in range(START_TRIAL,NUM_TRIALS):
                     for key in buttons:
                         buttons[key].draw(c.screen)
                     pygame.display.update()
-
+                events = []
                 savemat(matlab_output_file,task)
+            RTB.reset_input_buffer()
 
 savemat(matlab_output_file,task)
 background_music[3].stop()
-c.exit_screen("Das Slotmaschinen Spiel ist fertig. Vielen Dank, dass Sie mitgemacht haben!", font=c.title, font_color=GOLD)
+if task['training']:
+    c.exit_screen("Training ist fertig. Danke!", font=c.title, font_color=GOLD)
+else:
+    c.exit_screen("Das Slotmaschinen Spiel ist fertig. Vielen Dank, dass Sie mitgemacht haben!", font=c.title, font_color=GOLD)
 
 
 

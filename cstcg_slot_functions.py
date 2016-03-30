@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import pygame
 from pygame.locals import *
 from pygame import gfxdraw
@@ -17,7 +19,9 @@ import platform
 if platform.system() == 'Windows': # Windows
     from ctypes import windll
 
-
+ue = u"ü"
+ae = u"ä"
+Ue = u"Ü"
 # Define colors:
 #BLUE =   (  0,   0, 128)
 GREEN =  ( 58, 138, 112)
@@ -64,6 +68,15 @@ instructions['13'] = pygame.image.load('./instructions/Slide13.png').convert_alp
 instructions['14'] = pygame.image.load('./instructions/Slide14.png').convert_alpha()
 instructions['15'] = pygame.image.load('./instructions/Slide15.png').convert_alpha()
 instructions['16'] = pygame.image.load('./instructions/Slide16.png').convert_alpha()
+
+
+# Load training 
+training_info = {}
+training_info['1'] = pygame.image.load('./images/train_1.png').convert_alpha()
+training_info['2'] = pygame.image.load('./images/train_2.png').convert_alpha()
+training_info['3'] = pygame.image.load('./images/train_3.png').convert_alpha()
+training_info['4'] = pygame.image.load('./images/train_4.png').convert_alpha()
+training_info['5'] = pygame.image.load('./images/train_5.png').convert_alpha()
 
 # Load symbols
 symbols = {}
@@ -116,6 +129,10 @@ def logit(x):
 def is_odd(num):
     return num & 0x1
 
+def show_instruction(c,stage):
+    c.screen.blit(training_info[stage],(c.center_x-training_info[stage].get_width()/2, c.center_y-training_info[stage].get_height()/2))
+    pygame.display.update()
+    c.wait_fun(2000)
 
 def process_rtb(positions,index, stage, hold_on,task=None):
     fix = 50
@@ -181,28 +198,28 @@ def process_rtb(positions,index, stage, hold_on,task=None):
 
 def selector(c,task,positions,index,selector_pos):
 
-    # sel_positions=[(85,360), # loss
-    #        (8,430), # orange
-    #        (8,510), # grape 
-    #        (8,580), # cherry 
-    #        (8,660), # lemon 
-    #        (8,730), # plum
-    #        (180,430), # bar 
-    #        (180,510), # bell 
-    #        (180,580),#watermelon
-    #        (180,660),#seven
-    #        (180,730)] # jackpot
-    sel_positions=[(90,430), # loss
-               (8,500), # orange
-               (8,580), # grape 
-               (8,650), # cherry 
-               (8,730), # lemon 
-               (8,800), # plum
-               (180,500), # bar 
-               (180,580), # bell 
-               (180,650),#watermelon
-               (180,730),#seven
-               (180,800)] # jackpot
+    sel_positions=[(85,360), # loss
+           (8,430), # orange
+           (8,510), # grape 
+           (8,580), # cherry 
+           (8,660), # lemon 
+           (8,730), # plum
+           (180,430), # bar 
+           (180,510), # bell 
+           (180,580),#watermelon
+           (180,660),#seven
+           (180,730)] # jackpot
+    # sel_positions=[(90,430), # loss
+    #            (8,500), # orange
+    #            (8,580), # grape 
+    #            (8,650), # cherry 
+    #            (8,730), # lemon 
+    #            (8,800), # plum
+    #            (180,500), # bar 
+    #            (180,580), # bell 
+    #            (180,650),#watermelon
+    #            (180,730),#seven
+    #            (180,800)] # jackpot
 
     pos = sel_positions[selector_pos-1]
     selected = False
@@ -214,8 +231,12 @@ def selector(c,task,positions,index,selector_pos):
     elif index == 8:
         selected = True
         c.log('Selected guess on Trial ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
+        if task['training']:
+            show_instruction(c,'2')
+            show_instruction(c,'3')
     c.screen.blit(selector_box,pos)
     pygame.display.update()
+
     return selector_pos, selected
 
 def get_screen_elements(c, task):
@@ -580,7 +601,7 @@ def begin_training_screen(c):
     c.blank_screen()
     c.log('Training beginning at ' + repr(time.time()) + '\n')
 
-    c.text_screen('Die naechsten 10 Spiele sind zum Ueben da. Die Punkte zaehlen nicht zu ihrem Endergebnis dazu.', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
+    c.text_screen('Die naechsten 6 Spiele sind zum '+Ue+'ben da. Die Punkte zaehlen nicht zu ihrem Endergebnis dazu.', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=4000) 
 
 def end_training_screen(c):
     waitfun(1000)
@@ -666,6 +687,17 @@ def gamble(c,task, positions, sizes, RTB):
         caption="Gamble",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
     no_gamble_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
         caption="Nein danke.", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
+
+    gamble_button.draw(c.screen)
+    no_gamble_button.draw(c.screen)
+    pygame.display.update()
+
+    if task['training']:
+        show_instruction(c,'5')
+
+    c.blank_screen()
+    c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
+    c.screen.blit(card_back,(x_pos,y_pos))
 
     gamble_button.draw(c.screen)
     no_gamble_button.draw(c.screen)
@@ -791,6 +823,71 @@ def show_result(c,positions,buttons,task, spinning=False):
         pygame.display.flip()
         waitfun(wait)
 
+
+        # c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
+        # n = 10
+        # start_time = time.time()
+        # time_elapsed = time.time() - start_time
+        # wheel1 = True
+        # wheel2 = False
+        # sent_trigger_1 = False
+        # sent_trigger_2 = False
+
+        # while time_elapsed < 1.2:
+        #     time_elapsed = time.time() - start_time
+        #     if time_elapsed > 0.7:
+        #         wheel2 = True
+        #     show1 = True
+        #     show2 = False
+        #     show3 = False
+        #     show4 = False
+
+        #     if 0 < round(time.time()*1000) % n < n/4 and show1:
+        #         if wheel1:
+        #             c.screen.blit(symbols[task['result_sequence'][task['trial']][1]],(positions['machine']['x1'],positions['machine']['y']))   
+        #             if not sent_trigger_1:
+        #                 eeg_trigger(c,task,'stop_1')
+        #                 sent_trigger_1 = True
+        #         else:
+        #             c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x1'],positions['machine']['y']))
+        #         pygame.display.flip()
+        #         show1 = False
+        #         show2 = True
+        #     if n/4 < round(time.time()*1000) % n < n/2 and show2:
+        #         if wheel2:
+        #             c.screen.blit(symbols[task['result_sequence'][task['trial']][2]],(positions['machine']['x2'],positions['machine']['y']))
+        #             if not sent_trigger_2:
+        #                 eeg_trigger(c,task,'stop_2')
+        #                 sent_trigger_2 = True
+        #         else:
+        #             c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x2'],positions['machine']['y']))
+        #         pygame.display.flip()
+        #         show2 = False
+        #         show3 = True
+
+        #     elif n/2 < round(time.time()*1000) % n < 3*n/4 and show3:
+                
+        #         c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x3'],positions['machine']['y']))
+        #         pygame.display.flip()
+        #         show3 = False
+        #         show4 = True
+        #     elif n-10 < round(time.time()*1000) % n < n and show4:
+        #         c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
+        #         pygame.display.flip()
+        #         show4 = False
+        #         show1 = True
+
+        # c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
+        # c.screen.blit(symbols[task['result_sequence'][task['trial']][1]],(positions['machine']['x1'],positions['machine']['y']))   
+        # c.screen.blit(symbols[task['result_sequence'][task['trial']][2]],(positions['machine']['x2'],positions['machine']['y']))
+        # c.screen.blit(symbols[task['result_sequence'][task['trial']][3]],(positions['machine']['x3'],positions['machine']['y']))
+        # if task['result_sequence'][task['trial']][0] == '1':
+        #     eeg_trigger(c,task,'stop_3_win')
+        # else:
+        #     eeg_trigger(c,task,'stop_3_loss')
+        # pygame.display.flip()
+        # waitfun(wait)
+
 def process_result(c,positions,buttons,sizes,task, RTB):
     wait = 190
     reward = 0
@@ -825,7 +922,7 @@ def process_result(c,positions,buttons,sizes,task, RTB):
 
 def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
     pygame.event.clear()    
-    
+    wait = task['inter_wheel_interval']
     n = 100
     show1 = True
     show2 = False
@@ -948,14 +1045,14 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
         c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
         show_result(c,positions,buttons,task, spinning=False)
         pygame.display.flip()
-    #c.wait_fun(500)
+    c.wait_fun(wait)
     spinsound.stop()
 
 
 
 def spin_wheels(c, positions, buttons, task, RTB):
     pygame.event.clear()    
-    n = 100
+    n = 70
     show1 = True
     show2 = False
     show3 = False
