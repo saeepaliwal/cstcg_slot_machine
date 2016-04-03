@@ -23,8 +23,8 @@ class ChoiceTask():
     screen_width = screen.get_width()
     screen_height = screen.get_height()
         
-    # modes = pygame.display.list_modes()
-    # screen = pygame.display.set_mode(modes[0],pygame.FULLSCREEN,16)
+    modes = pygame.display.list_modes()
+    screen = pygame.display.set_mode(modes[0],pygame.FULLSCREEN,16)
 
     center_x = screen_width/2
     left_x = screen_width/20
@@ -501,7 +501,7 @@ class ChoiceTask():
             font_color = self.text_color
 
         # Text input should be raw text 
-        self.text_screen(text=exit_text, font=self.header, font_color=font_color)
+        self.text_screen(text=exit_text, font=self.header, font_color=font_color, valign='center', y_displacement= -45)
         pygame.display.update()
         self.game_over_sound.play()
         self.wait_fun(milliseconds=10000)

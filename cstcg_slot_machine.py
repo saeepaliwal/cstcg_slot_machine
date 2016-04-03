@@ -37,9 +37,10 @@ elif task_stage[0] == 'right':
     training = False
 
 testing = False
-# # Kludge for testing
-# training = False
-# testing = True
+
+# Kludge for testing
+training = False
+testing = True
 
 pygame.mouse.set_visible(False)
 currency = 'points'
@@ -321,9 +322,13 @@ for trial in range(START_TRIAL,NUM_TRIALS):
                             task['trial_stage'] = 'result'
                            
                             if task['wheel_hold_buttons']:
+                                RTB.reset_input_buffer()
                                 individual_wheel_spin(c,positions,buttons,sizes,task, RTB)
+                                RTB.reset_input_buffer()
                             else:
+                                RTB.reset_input_buffer()
                                 spin_wheels(c, positions, buttons, task)
+                                RTB.reset_input_buffer()
                             
                             task = process_result(c,positions,buttons,sizes,task, RTB)  
                             next_trial = True

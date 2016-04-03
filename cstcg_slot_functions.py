@@ -19,15 +19,13 @@ import platform
 if platform.system() == 'Windows': # Windows
     from ctypes import windll
 
+# Define symbols
 ue = u"ü"
 ae = u"ä"
 Ue = u"Ü"
+
 # Define colors:
-#BLUE =   (  0,   0, 128)
 GREEN =  ( 58, 138, 112)
-#GREEN =  (  0, 100,   0)
-#RED =    (178,  34,  34)
-#YELLOW = (255, 215,   0)
 GRAY =   (139, 139, 131)
 PURPLE = (178, 102, 255)
 CARROT = (255, 140,   0)
@@ -510,11 +508,7 @@ def draw_screen(c, positions, buttons, sizes, task):
 
     c.screen.blit(scoreboard,(positions['scoreboard_x'],positions['scoreboard_y']))
 
-    ## At trial onset, blit a color box around the wheels
-    # if task['start_trial'] == 1:
-    #     start_trial_box = pygame.Rect(BLUE)
-    # elif task['during_trial'] == 1:
-    #     during_trial_gray = pygame.Rect(GRAY)
+
     if task['trial_stage'] != 'guess':
         selector(c,task,positions,0,task['guess_trace'][task['trial']])
 
@@ -530,9 +524,6 @@ def update_account(c,positions, sizes, task):
         # Update the account with the latest win or loss
         task['account'][task['trial']] = task['account'][task['trial']] + task['winloss'][task['trial']]
 
-    # display_assets(c,positions,sizes,task)
-    # pygame.display.flip()
-
     return task
 
 def clear(c,task):
@@ -542,26 +533,6 @@ def clear(c,task):
             task['bet_size'][task['trial']] = task['bet_size'][task['trial']] - task['bet_sequence'][-1]
             del task['bet_sequence'][-1]
     return task
-
-def cashout(c, positions, buttons, sizes, task):   
-
-    c.screen.fill(c.background_color)
-    cashout_or_back = c.title.render("Cashout or go back to the game?", True, GOLD)
-    c.center_text(cashout_or_back,y_offset=-100, center_x=c.center_x, center_y=c.center_y)
-
-    button_clicked = c.choice_screen(button_txt1="Cashout", button_txt2="Go Back")
-    if button_clicked[0] == 'left':
-        c.log('Did not cash out ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
-        draw_screen(c, positions, buttons, sizes, task)
-        pygame.display.update()
-    elif button_clicked[0] == 'right':
-        c.log('Cashing out ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
-        c.blank_screen()
-        c.text_screen('Leaving the casino!', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=3000)  
-        c.blank_screen()
-        c.text_screen('Entering the casino on a new day!', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=3000)  
-        #welcome_screen(c) 
-        c.blank_screen()
     
 def welcome_screen(c, wait_time=3000):
     c.blank_screen()
@@ -683,6 +654,7 @@ def show_win_banner(c,positions,task,reward):
 
 
 def gamble(c,task, positions, sizes, RTB):
+    RTB.reset_input_buffer()
     card_back = pygame.image.load('./images/symbols_card_back.png').convert_alpha()
     cards = []
     cards.append(pygame.image.load('./images/symbols_card1.png').convert_alpha())
@@ -694,29 +666,18 @@ def gamble(c,task, positions, sizes, RTB):
     x_pos = c.center_x-card_back.get_width()/2
     y_pos = c.center_y-card_back.get_height()/2
 
-    c.blank_screen()
-    c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
-    c.screen.blit(card_back,(x_pos,y_pos))
-
     eeg_trigger(c,task,'gamble_screen')
-    # pygame.display.update()
-    # waitfun(100)
 
     gamble_button = SlotButton(rect=(positions['gamble_x'],positions['gamble_y'], sizes['bbw'],sizes['sbh']),\
         caption="Gamble",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
     no_gamble_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
         caption="Nein danke.", fgcolor=c.background_color, bgcolor=GREEN, font=c.button)
 
-    gamble_button.draw(c.screen)
-    no_gamble_button.draw(c.screen)
-    pygame.display.update()
-
     if task['training']:
         show_instruction(c,'5')
 
     c.blank_screen()
     c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
-    c.screen.blit(card_back,(x_pos,y_pos))
 
     gamble_button.draw(c.screen)
     no_gamble_button.draw(c.screen)
@@ -798,9 +759,6 @@ def show_result(c,positions,buttons,task, spinning=False):
         else:
             spin_wheels(c, positions, buttons, task)
 
-
-
-
 def process_result(c,positions,buttons,sizes,task, RTB):
     wait = 190
     reward = 0
@@ -822,8 +780,6 @@ def process_result(c,positions,buttons,sizes,task, RTB):
         win_screen(c,positions, buttons, sizes, task)
         eeg_trigger(c,task,'money_banner')
         show_win_banner(c,positions, task,reward)
-    # elif task['result_sequence'][task['trial']][0] == '0' or task['result_sequence'][0] == '2': # loss or near miss 
-    #     task['reward_grade'][task['trial']] = 0
 
     task['winloss'][task['trial']] = reward
 
@@ -957,9 +913,6 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
                 keep_spinning=False
     
     if not task['wheel1'] or not task['wheel2'] or not task['wheel3']:
-        # task['wheel1'] = True
-        # task['wheel2'] = True
-        # task['wheel3'] = True
         c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
         show_result(c,positions,buttons,task, spinning=False)
         pygame.display.flip()
@@ -981,8 +934,6 @@ def spin_wheels(c, positions, buttons, task):
     counter = 0
     keep_spinning = True
     while keep_spinning:
-        spinsound.play(100,0)
-        
         if counter < counter_max:
             c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
             pygame.display.flip()
