@@ -38,9 +38,9 @@ elif task_stage[0] == 'right':
 
 testing = False
 
-# Kludge for testing
-training = False
-testing = True
+# # Kludge for testing
+# training = False
+# testing = True
 
 pygame.mouse.set_visible(False)
 currency = 'points'

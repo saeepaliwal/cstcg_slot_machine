@@ -1009,17 +1009,18 @@ def spin_wheels(c, positions, buttons, task):
                 c.wait_fun(lag)
 
         elif counter_max+20 < counter < counter_max+40:
-            c.wait_fun(lag)
+            if not task['wheel2']:
+                c.wait_fun(lag)
 
-            c.screen.blit(spin_cover3,(positions['machine']['base_x'],positions['machine']['base_y']))
-            pygame.display.flip()
-            c.wait_fun(lag)
+                c.screen.blit(spin_cover3,(positions['machine']['base_x'],positions['machine']['base_y']))
+                pygame.display.flip()
+                c.wait_fun(lag)
 
-            c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x3'],positions['machine']['y']))
-            pygame.display.flip()
-            c.wait_fun(2*lag)
+                c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x3'],positions['machine']['y']))
+                pygame.display.flip()
+                c.wait_fun(2*lag)
 
-        elif counter == counter_max+40:
+        elif counter == counter_max+40 or task['wheel2']:
             c.screen.blit(spin_cover3,(positions['machine']['base_x'],positions['machine']['base_y']))
             pygame.display.flip()
             c.wait_fun(lag)
