@@ -22,14 +22,9 @@ class ChoiceTask():
     screen = pygame.display.set_mode((pygame.display.Info().current_w,pygame.display.Info().current_h))
     screen_width = screen.get_width()
     screen_height = screen.get_height()
-    
-
-    # screen_width = 900
-    # screen_height = 600
-    # screen = pygame.display.set_mode((screen_width,screen_height))
-    
-    #modes = pygame.display.list_modes()
-    #screen = pygame.display.set_mode(modes[0],pygame.FULLSCREEN,16)
+        
+    # modes = pygame.display.list_modes()
+    # screen = pygame.display.set_mode(modes[0],pygame.FULLSCREEN,16)
 
     center_x = screen_width/2
     left_x = screen_width/20
@@ -444,6 +439,56 @@ class ChoiceTask():
         self.wait_fun(milliseconds=300)    
         return button_clicked
 
+    def two_button_screen(self,banner_text=None,button_txt1=None, button_txt2=None, x_offset=0, y_offset=0):
+        self.make_banner(self.body.render(banner_text,True,self.header_color))
+        left_button = TaskButton(rect=(self.left_center_x-70,self.center_y, 140,70),\
+            caption=button_txt2,  fgcolor=self.background_color, bgcolor=self.button_color, font=self.button)
+        right_button = TaskButton(rect=(self.right_center_x-60,self.center_y, 140,70),\
+            caption=button_txt1, fgcolor=self.background_color, bgcolor=self.button_color, font=self.button)
+        left_button.draw(self.screen)
+        right_button.draw(self.screen)
+        
+        pygame.display.update()
+
+        # Choice phase
+        playing = True
+        while playing:
+            pygame.time.wait(20)
+            for event in pygame.event.get():
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    pygame.quit()
+
+                if event.type in (MOUSEMOTION, MOUSEBUTTONUP, MOUSEBUTTONDOWN):
+                    if 'click' in left_button.handleEvent(event):               
+                        button_clicked = ['left']
+                        playing = False
+                    if 'click' in right_button.handleEvent(event):
+                        button_clicked = ['right']
+                        playing = False
+                elif event.type == KEYDOWN:
+                    pressedKey = pygame.key.name(event.key)
+                    if pressedKey == 'left':
+                        left_button.buttonDown = True;
+                        left_button.draw(self.screen)
+                        pygame.display.update()
+                        button_clicked = ['left']
+                        self.wait_fun(200)
+                        playing = False
+                    elif pressedKey == 'right':
+                        right_button.buttonDown = True;
+                        right_button.draw(self.screen)
+                        pygame.display.update()
+                        button_clicked = ['right']
+                        self.wait_fun(200)
+                        playing = False
+
+       
+            left_button.draw(self.screen)
+            right_button.draw(self.screen)
+            pygame.display.update()
+
+        self.wait_fun(milliseconds=300)    
+        return button_clicked
 
     # Exit screen
     def exit_screen(self, exit_text="Exiting", font=None,font_color=None):

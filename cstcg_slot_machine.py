@@ -9,19 +9,40 @@ import random
 import numpy as np
 from scipy.io import savemat
 import platform
-import pdb
 
-training = False #input
+c = ChoiceTask(background_color=( 20, 20, 20), 
+    title  = pygame.font.Font('./fonts/Lobster.ttf', 60),
+    body  = pygame.font.Font('./fonts/Oswald-Bold.ttf', 30),
+    header = pygame.font.Font('./fonts/Oswald-Bold.ttf', 40),
+    instruction = pygame.font.Font('./fonts/GenBasR.ttf',30),
+    choice_text = pygame.font.Font('./fonts/GenBasR.ttf', 30),
+    button = pygame.font.Font('./fonts/Oswald-Bold.ttf',30))
+
+# c.text_screen('Please wait...', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=0)
+
 response_box = True
-currency = 'points'
-testing = True
-
 # Initialize response box:
 if response_box: 
     if platform.system() == 'Darwin': # Mac
         RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
     elif platform.system() == 'Windows': # Windows
         RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
+
+
+
+task_stage = c.two_button_screen(banner_text="Please select training or task",button_txt1='Task', button_txt2 = 'Training')
+if task_stage[0] == 'left':
+    training = True
+elif task_stage[0] == 'right':
+    training = False
+
+testing = False
+# # Kludge for testing
+# training = False
+# testing = True
+
+pygame.mouse.set_visible(False)
+currency = 'points'
 
 # Define special characters
 ae = u"ä";
@@ -37,20 +58,7 @@ background_music.append(pygame.mixer.Sound('./sounds/machine2_music.wav'))
 background_music.append(pygame.mixer.Sound('./sounds/machine3_music.wav'))
 background_music.append(pygame.mixer.Sound('./sounds/machine4_music.wav'))
 for i in range(4):
-    background_music[i].set_volume(0.1)
-
-pygame.mouse.set_visible(False)
-c = ChoiceTask(background_color=( 20, 20, 20), 
-    title  = pygame.font.Font('./fonts/Lobster.ttf', 60),
-    body  = pygame.font.Font('./fonts/Oswald-Bold.ttf', 30),
-    header = pygame.font.Font('./fonts/Oswald-Bold.ttf', 40),
-    instruction = pygame.font.Font('./fonts/GenBasR.ttf',30),
-    choice_text = pygame.font.Font('./fonts/GenBasR.ttf', 30),
-    button = pygame.font.Font('./fonts/Oswald-Bold.ttf',30))
-
-(subjectname) = c.subject_information_screen()
-subject = subjectname.replace(" ","")
-matlab_output_file = c.create_output_file(subjectname)
+    background_music[i].set_volume(0.0)
 
 # Task trace:
 result_sequence = []
@@ -85,8 +93,8 @@ else:
 
 # Set trial switch specifications
 if testing:
-    NUM_TRIALS = 20
     task_block_sequence=[3,6,9,12,15,18]
+    NUM_TRIALS = 18
 else:     
     NUM_TRIALS = len(result_sequence)-1
     task_block_sequence=[3,6,36,66,96,126]
@@ -124,6 +132,7 @@ task['wheel_hold_buttons'] = wheel_hold_bool[0]
 task['wheel1'] = False
 task['wheel2'] = False
 task['wheel3'] = False
+task['progress'] = 1
 
 if training:
     task['training'] = True
@@ -136,6 +145,11 @@ else:
 
 # Set up initial screen 
 positions, buttons, sizes = get_screen_elements(c, task)
+
+c.blank_screen()
+(subjectname) = c.subject_information_screen()
+subject = subjectname.replace(" ","")
+matlab_output_file = c.create_output_file(subjectname)
 
 if training:
     instruction_screen(c,positions,sizes,RTB)
@@ -152,6 +166,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         task['machine'] = 6
         task['wheel_hold_buttons'] = wheel_hold_bool[1]
     elif trial == task_block_sequence[1]:
+        task['progress'] = 1
         if training:
             task['training'] = False
             background_music[0].stop()
@@ -166,6 +181,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[3]) + ' at ' + repr(time.time()) + '\n')
     elif trial == task_block_sequence[2]:
+        task['progress'] = 2
         background_music[0].stop()
         change_machine_screen(c)
         task['machine'] = block_order[1]
@@ -177,6 +193,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[2]) + ' at ' + repr(time.time()) + '\n')
         background_music[1].play(100,0)
     elif trial == task_block_sequence[3]:
+        task['progress'] = 3
         background_music[1].stop()
         change_machine_screen(c)
         task['machine'] = block_order[2]
@@ -188,6 +205,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         c.log('Wheel hold buttons are ' + str(wheel_hold_bool[3]) + ' at ' + repr(time.time()) + '\n')
         background_music[2].play(100,0)
     elif trial == task_block_sequence[4]:
+        task['progress'] = 4
         background_music[2].stop()
         change_machine_screen(c)
         task['machine'] = block_order[3]
@@ -305,8 +323,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
                             if task['wheel_hold_buttons']:
                                 individual_wheel_spin(c,positions,buttons,sizes,task, RTB)
                             else:
-                                spin_wheels(c, positions, buttons, task,RTB)
-                                show_result(c,positions,buttons,task)
+                                spin_wheels(c, positions, buttons, task)
                             
                             task = process_result(c,positions,buttons,sizes,task, RTB)  
                             next_trial = True
