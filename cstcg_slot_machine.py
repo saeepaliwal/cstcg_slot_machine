@@ -29,7 +29,6 @@ if response_box:
         RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
 
 
-
 task_stage = c.two_button_screen(banner_text="Please select training or task",button_txt1='Task', button_txt2 = 'Training')
 if task_stage[0] == 'left':
     training = True
@@ -154,9 +153,12 @@ matlab_output_file = c.create_output_file(subjectname)
 
 if training:
     instruction_screen(c,positions,sizes,RTB)
-    #welcome_screen(c)
+    welcome_screen(c)
 
 for trial in range(START_TRIAL,NUM_TRIALS):   
+    task['wheel1'] = False
+    task['wheel2'] = False
+    task['wheel3'] = False
     if trial == 0:
         begin_training_screen(c)
         background_music[0].play(100,0)
@@ -176,7 +178,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         task['machine'] = block_order[0]
         task['current_block'] = block_order[0]
         task['wheel_hold_buttons'] = wheel_hold_bool[2]
-        #welcome_screen(c)
+        welcome_screen(c)
         background_music[0].play(100,0)
         c.log('Starting block ' + str(block_order[0]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
