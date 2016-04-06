@@ -100,7 +100,6 @@ else:
     task_block_sequence=[3,6,36,66,96,126]
 
 
-
 # Define dictionary of task attributes:
 task = {'bet_size': np.zeros(NUM_TRIALS).astype('int'),
         'account': np.zeros(NUM_TRIALS).astype('int'),
@@ -153,7 +152,7 @@ matlab_output_file = c.create_output_file(subjectname)
 
 if training:
     instruction_screen(c,positions,sizes,RTB)
-    #welcome_screen(c)
+    welcome_screen(c)
 
 for trial in range(START_TRIAL,NUM_TRIALS):   
     task['wheel1'] = False
@@ -178,7 +177,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         task['machine'] = block_order[0]
         task['current_block'] = block_order[0]
         task['wheel_hold_buttons'] = wheel_hold_bool[2]
-        #welcome_screen(c)
+        welcome_screen(c)
         background_music[0].play(100,0)
         c.log('Starting block ' + str(block_order[0]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
