@@ -77,10 +77,6 @@ else:
     block_order = [1,2,3,4]
     random.shuffle(block_order)
 
-
-    # PDB REMOVE TODO
-    block_order = [3,1,2,4]
-
     for b in block_order:
         with open ('./traces/taskBackend_' + str(b) + '.txt','r') as f:
             probability_trace = f.read().replace('\n', '')
