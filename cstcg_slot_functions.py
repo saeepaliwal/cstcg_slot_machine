@@ -676,16 +676,16 @@ def gamble(c,task, positions, sizes, RTB):
     decided = False
     CARD = pygame.USEREVENT + 1
 
-    c.blank_screen()
-    c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
-    gamble_button.draw(c.screen)
-    no_gamble_button.draw(c.screen)
-    pygame.display.update()   
-    c.screen.blit(cards[0],(x_pos,y_pos))
-    pygame.display.update()
-
     if task['training']:
+        c.blank_screen()
+        c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
+        gamble_button.draw(c.screen)
+        no_gamble_button.draw(c.screen)
+        pygame.display.update()   
+        c.screen.blit(cards[0],(x_pos,y_pos))
+        pygame.display.update()
         show_instruction(c,'5')
+
     c.blank_screen()
     c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
     gamble_button.draw(c.screen)
@@ -828,6 +828,7 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
             for key in buttons:
                 buttons[key].draw(c.screen)
             pygame.display.flip()
+            
         key_press = RTB.read() 
         if len(key_press):
             key_index = ord(key_press)
@@ -890,41 +891,20 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
             c.wait_fun(lag)
             show_result(c,positions,buttons,task, spinning=True)
 
-            # if counter == 15:
-            #     task['ungrey_wheel2'] = True
-            #     buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
-            #     for key in buttons:
-            #         buttons[key].draw(c.screen)
-            # elif counter == 30:
-            #     task['ungrey_wheel3'] = True
-            #     buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
-            #     for key in buttons:
-            #         buttons[key].draw(c.screen)
-            
-
             if not task['wheel1']:
                 c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x1'],positions['machine']['y']))        
                 pygame.display.flip()
-                c.wait_fun(lag)
+            c.wait_fun(lag)
 
             if not task['wheel2']:
-                if task['wheel1']:
-                    s = task['result_sequence'][task['trial']][1]
-                    idx = round(random.betavariate(1,1),1)
-                    if idx > 0.7:
-                        c.screen.blit(symbols[str(s)],(positions['machine']['x2'],positions['machine']['y']))
-                    else:
-                        c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x2'],positions['machine']['y']))
-                else:
-                    c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x2'],positions['machine']['y']))
+                c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x2'],positions['machine']['y']))
                 pygame.display.flip()
-                c.wait_fun(lag)
+            c.wait_fun(lag)
 
             if not task['wheel3']:
                 c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x3'],positions['machine']['y']))
                 pygame.display.flip()
-                c.wait_fun(lag)
-
+            c.wait_fun(lag)
 
             if task['wheel1'] and task['wheel2'] and task['wheel3']:
                 keep_spinning=False
@@ -968,9 +948,8 @@ def spin_wheels(c, positions, buttons, task):
             pygame.display.flip()
             c.wait_fun(lag)
         elif counter == counter_max:
-            if task['wheel_hold_buttons']:
-                if task['wheel1']:
-                    c.screen.blit(symbols[task['result_sequence'][task['trial']][1]],(positions['machine']['x1'],positions['machine']['y']))
+            if task['wheel_hold_buttons'] and task['wheel1']:
+                c.screen.blit(symbols[task['result_sequence'][task['trial']][1]],(positions['machine']['x1'],positions['machine']['y']))
             else:
                 c.wait_fun(lag)
                 c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
@@ -983,10 +962,11 @@ def spin_wheels(c, positions, buttons, task):
                 else:
                     eeg_trigger(c,task,'stop_1')
                 pygame.display.flip()
-                c.wait_fun(lag)
+                c.wait_fun(2*lag)
         elif counter_max < counter < counter_max+20:
             if task['wheel_hold_buttons']:
-                if not task['wheel2'] and not task['wheel1']:
+                if not task['wheel1'] and not task['wheel2']:
+                    c.wait_fun(lag)
                     c.screen.blit(spin_cover2,(positions['machine']['base_x'],positions['machine']['base_y']))
                     pygame.display.flip()
                     c.wait_fun(lag)
@@ -997,8 +977,9 @@ def spin_wheels(c, positions, buttons, task):
 
                     c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x3'],positions['machine']['y']))
                     pygame.display.flip()
-                    c.wait_fun(2*lag)
+                    c.wait_fun(lag)
             else:
+                c.wait_fun(lag)
 
                 c.screen.blit(spin_cover2,(positions['machine']['base_x'],positions['machine']['base_y']))
                 pygame.display.flip()
@@ -1010,13 +991,13 @@ def spin_wheels(c, positions, buttons, task):
 
                 c.screen.blit(symbols[str(random.randint(1,9))],(positions['machine']['x3'],positions['machine']['y']))
                 pygame.display.flip()
-                c.wait_fun(2*lag)
+                c.wait_fun(lag)
 
         elif counter == counter_max+20:
-            if task['wheel_hold_buttons']:
-                if task['wheel2']:
-                    c.screen.blit(symbols[task['result_sequence'][task['trial']][2]],(positions['machine']['x2'],positions['machine']['y']))
+            if task['wheel_hold_buttons'] and task['wheel2']:
+                c.screen.blit(symbols[task['result_sequence'][task['trial']][2]],(positions['machine']['x2'],positions['machine']['y']))
             else:  
+                c.wait_fun(lag)
                 c.screen.blit(spin_cover2,(positions['machine']['base_x'],positions['machine']['base_y']))
                 pygame.display.flip()
                 c.wait_fun(lag)
@@ -1027,13 +1008,12 @@ def spin_wheels(c, positions, buttons, task):
                 else:
                     eeg_trigger(c,task,'stop_2')
                 pygame.display.flip()
-                c.wait_fun(lag)
+                c.wait_fun(2*lag)
 
         elif counter_max+20 < counter < counter_max+40:
             if task['wheel_hold_buttons']:
                 if not task['wheel2']:
                     c.wait_fun(lag)
-
                     c.screen.blit(spin_cover3,(positions['machine']['base_x'],positions['machine']['base_y']))
                     pygame.display.flip()
                     c.wait_fun(lag)

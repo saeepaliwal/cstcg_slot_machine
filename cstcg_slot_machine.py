@@ -77,6 +77,10 @@ else:
     block_order = [1,2,3,4]
     random.shuffle(block_order)
 
+
+    # PDB REMOVE TODO
+    block_order = [3,1,2,4]
+
     for b in block_order:
         with open ('./traces/taskBackend_' + str(b) + '.txt','r') as f:
             probability_trace = f.read().replace('\n', '')
@@ -153,7 +157,7 @@ matlab_output_file = c.create_output_file(subjectname)
 
 if training:
     instruction_screen(c,positions,sizes,RTB)
-    welcome_screen(c)
+    #welcome_screen(c)
 
 for trial in range(START_TRIAL,NUM_TRIALS):   
     task['wheel1'] = False
@@ -178,7 +182,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         task['machine'] = block_order[0]
         task['current_block'] = block_order[0]
         task['wheel_hold_buttons'] = wheel_hold_bool[2]
-        welcome_screen(c)
+        #welcome_screen(c)
         background_music[0].play(100,0)
         c.log('Starting block ' + str(block_order[0]) + ' at ' + repr(time.time()) + '\n')
         c.log('Machine ' + str(task['machine']) + 'at ' + repr(time.time()) + '\n')
