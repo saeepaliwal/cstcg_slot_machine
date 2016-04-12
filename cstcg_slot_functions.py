@@ -110,22 +110,22 @@ spin_cover1 = pygame.image.load('./images/slot_machines_spin_cover1.png').conver
 spin_cover2 = pygame.image.load('./images/slot_machines_spin_cover2.png').convert_alpha()
 spin_cover3 = pygame.image.load('./images/slot_machines_spin_cover3.png').convert_alpha()
 
-# Pull in sounds:
 spinsound = pygame.mixer.Sound('./sounds/spinning.wav')
-# spinsound.set_volume(0.2)
-spinsound.set_volume(0.0)
 winsound = pygame.mixer.Sound('./sounds/winsound.wav')
-# winsound.set_volume(0.5)
-winsound.set_volume(0.0)
 bigwinsound = pygame.mixer.Sound('./sounds/bigwinsound.wav')
-# bigwinsound.set_volume(0.3)
-bigwinsound.set_volume(0.0)
 spinstopsound = pygame.mixer.Sound('./sounds/spinstop.wav')
-# spinstopsound.set_volume(0.7)
-spinstopsound.set_volume(0.0)
+# Pull in sounds:
+if platform.system() == 'Darwin':
+    vol = 0.8
+elif platform.system() == 'Windows':
+    vol = 0.0
 
-#Define language
-# TODO: set this up as a button
+spinsound.set_volume(5)
+winsound.set_volume(vol)
+bigwinsound.set_volume(vol)
+spinstopsound.set_volume(vol)
+
+# Define language
 language = 'English'
 
 def sigmoid(x):
@@ -930,6 +930,7 @@ def spin_wheels(c, positions, buttons, task):
 
     counter = 0
     keep_spinning = True
+    spinsound.play(100,0)
     while keep_spinning:
         if counter < counter_max:
             c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
@@ -1051,6 +1052,7 @@ def spin_wheels(c, positions, buttons, task):
             keep_spinning = False
             waitfun(wait)
         counter += 1
+    spinsound.stop()
 
 def eeg_trigger(c,task,stage):
 

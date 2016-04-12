@@ -23,8 +23,8 @@ class ChoiceTask():
     screen_width = screen.get_width()
     screen_height = screen.get_height()
         
-    # modes = pygame.display.list_modes()
-    # screen = pygame.display.set_mode(modes[0],pygame.FULLSCREEN,16)
+    modes = pygame.display.list_modes()
+    screen = pygame.display.set_mode(modes[0],pygame.FULLSCREEN,16)
 
     center_x = screen_width/2
     left_x = screen_width/20

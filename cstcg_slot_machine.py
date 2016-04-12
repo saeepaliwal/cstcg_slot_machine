@@ -67,8 +67,14 @@ background_music.append(pygame.mixer.Sound('./sounds/machine1_music.wav'))
 background_music.append(pygame.mixer.Sound('./sounds/machine2_music.wav'))
 background_music.append(pygame.mixer.Sound('./sounds/machine3_music.wav'))
 background_music.append(pygame.mixer.Sound('./sounds/machine4_music.wav'))
-for i in range(4):
-    background_music[i].set_volume(0.0)
+
+if platform.system() == 'Darwin': # Mac
+    for i in range(4):
+        background_music[i].set_volume(0.8)
+elif platform.system() == 'Windows': # Windows
+    for i in range(4):
+        background_music[i].set_volume(0.0)
+
 
 # Task trace:
 result_sequence = []
@@ -87,7 +93,7 @@ else:
     if subject_num == 0:
         # Randomize blocks for real trials
         block_order = [1,2,3,4]
-        random.shuffle(block_order)
+        # random.shuffle(block_order)
     else:
         # Block order
         with open ('./traces/CSTCG_block_order.txt','r') as f:
