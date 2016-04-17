@@ -47,9 +47,9 @@ matlab_output_file = c.create_output_file(subjectname)
 
 testing = False
 
-# # Kludge for testing
-# training = False
-# testing = True
+# Kludge for testing
+training = False
+testing = True
 
 pygame.mouse.set_visible(False)
 currency = 'points'
@@ -92,7 +92,7 @@ else:
 
     if subject_num == 0:
         # Randomize blocks for real trials
-        block_order = [1,2,3,4]
+        block_order = [3,1,2,4]
         # random.shuffle(block_order)
     else:
         # Block order
@@ -160,11 +160,11 @@ task['progress'] = 1
 if training:
     task['training'] = True
     START_TRIAL = 0
-    task['account'][START_TRIAL] = 2000
+    task['account'][START_TRIAL] = 0
 else:
     task['training'] = False
     START_TRIAL = task_block_sequence[1]
-    task['account'][START_TRIAL] = 2000
+    task['account'][START_TRIAL] = 0
 
 # Set up initial screen 
 positions, buttons, sizes = get_screen_elements(c, task)
@@ -194,7 +194,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
             task['training'] = False
             background_music[0].stop()
             end_training_screen(c)
-        task['account'][trial] = 2000
+        task['account'][trial] = 0
         task['machine'] = block_order[0]
         task['current_block'] = block_order[0]
         task['wheel_hold_buttons'] = wheel_hold_bool[2]
@@ -208,7 +208,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         background_music[0].stop()
         change_machine_screen(c)
         task['machine'] = block_order[1]
-        task['account'][trial] = 2000
+        task['account'][trial] = 0
         task['current_block'] = block_order[1]
         task['wheel_hold_buttons'] = wheel_hold_bool[3]
         c.log('Starting block ' + str(block_order[1]) + ' at ' + repr(time.time()) + '\n')
@@ -220,7 +220,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         background_music[1].stop()
         change_machine_screen(c)
         task['machine'] = block_order[2]
-        task['account'][trial] = 2000
+        task['account'][trial] = 0
         task['current_block'] = block_order[2]
         task['wheel_hold_buttons'] = wheel_hold_bool[4]
         c.log('Starting block ' + str(block_order[2]) + ' at ' + repr(time.time()) + '\n')
@@ -232,7 +232,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         background_music[2].stop()
         change_machine_screen(c)
         task['machine'] = block_order[3]
-        task['account'][trial] = 2000
+        task['account'][trial] = 0
         task['current_block'] = block_order[3]
         task['wheel_hold_buttons'] = wheel_hold_bool[5]
         c.log('Starting block ' + str(block_order[3]) + ' at ' + repr(time.time()) + '\n')
@@ -251,7 +251,7 @@ for trial in range(START_TRIAL,NUM_TRIALS):
 
     # Set stage and selector
     task['trial_stage'] = 'guess'
-    selector_pos = 1
+    selector_pos = 0
 
 
     if trial > 0 and training:
@@ -260,10 +260,6 @@ for trial in range(START_TRIAL,NUM_TRIALS):
         task['account'][trial] = task['account'][trial-1] 
 
     task['reward_grade'][trial] = int(str(result_sequence[trial])[1])
-    # if task['account'][trial] < 5:
-    #     savemat(matlab_output_file,task)
-    #     c.text_screen('Unfortunately you lost all your money. Luckily, you have 2000 extra points in storage that we have added to your account. Good luck!', font=c.title, font_color=GOLD, valign='top', y_displacement= -45, wait_time=5000)  
-    #     task['account'][trial] = task['account'][trial] + 2000
 
     # EEG: Trial on
     if not task['training']:

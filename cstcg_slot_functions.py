@@ -234,13 +234,13 @@ def selector(c,task,positions,index,selector_pos):
                (180,730)] # jackpot
     
 
-    pos = sel_positions[selector_pos-1]
+    pos = sel_positions[selector_pos]
     selected = False
     if index == 1:
         selector_pos += 1
-        if selector_pos == 12:
-            selector_pos = 1
-        pos = sel_positions[selector_pos-1]
+        if selector_pos == 11:
+            selector_pos = 0
+        pos = sel_positions[selector_pos]
     elif index == 8:
         selected = True
         c.log('Selected guess on Trial ' + str(task['trial']) +  ' ' + repr(time.time()) + '\n')
@@ -440,18 +440,30 @@ def make_buttons(c,positions,sizes,task,trial_stage):
         caption="Drehen", fgcolor=c.background_color, bgcolor=GRAY, font=c.header)
 
         if task['wheel_hold_buttons']:
-            buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
-            caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
-            if task['ungrey_wheel2']:
+
+            if task['wheel1']:
+                buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+                caption="Stop", fgcolor=WHITE, bgcolor=RED, font=c.button)
+            else:              
+                buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+                caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+
+            if task['ungrey_wheel2'] and not task['wheel2']:
                 buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
                 caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+            elif task['ungrey_wheel2'] and task['wheel2']:
+                buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+                caption="Stop", fgcolor=WHITE, bgcolor=RED, font=c.button)
             else:
                 buttons['hold2'] = SlotButton(rect=(positions['hold2_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
                 caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
 
-            if task['ungrey_wheel3']:   
+            if task['ungrey_wheel3'] and not task['wheel3']:
                 buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
                 caption="Stop", fgcolor=WHITE, bgcolor=GOLD, font=c.button)
+            elif task['ungrey_wheel3'] and task['wheel3']:
+                buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
+                caption="Stop", fgcolor=WHITE, bgcolor=RED, font=c.button)
             else: 
                 buttons['hold3'] = SlotButton(rect=(positions['hold3_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
                 caption="Stop", fgcolor=WHITE, bgcolor=GRAY, font=c.button)
@@ -686,6 +698,7 @@ def gamble(c,task, positions, sizes, RTB):
         pygame.display.update()
         show_instruction(c,'5')
 
+    RTB.reset_input_buffer()
     c.blank_screen()
     c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
     gamble_button.draw(c.screen)
@@ -769,12 +782,11 @@ def show_result(c,positions,buttons,task, spinning=False):
 def process_result(c,positions,buttons,sizes,task, RTB):
     wait = 190
     reward = 0
-
    
     if task['result_sequence'][task['trial']][0] == '1':
         if task['guess_trace'][task['trial']] == int(task['result_sequence'][task['trial']][2]):
             reward = reward + 200           
-    elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 1:
+    elif task['result_sequence'][task['trial']][0] == '0' and task['guess_trace'][task['trial']] == 0:
         reward = reward + 200
     else:
         reward = reward - 200
@@ -810,19 +822,19 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
     task['wheel3'] = False
     task['ungrey_wheel2'] = False
     task['ungrey_wheel3'] = False
-    len_spin = 50
+    len_spin = 100
     counter = 0
     time_start = int(round(time.time()*1000))
     spinsound.play(100,0)
     keep_spinning = True
     while keep_spinning:
-        if counter == 15:
+        if counter == 30:
             task['ungrey_wheel2'] = True
             buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
             for key in buttons:
                 buttons[key].draw(c.screen)
             pygame.display.flip()    
-        elif counter == 30:
+        elif counter == 60:
             task['ungrey_wheel3'] = True
             buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
             for key in buttons:
@@ -856,9 +868,11 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
                         if 'click' in buttons['hold1'].handleEvent(event):
                             eeg_trigger(c,task,'pressed_stop_1')
                             task['wheel1'] = True
+                            buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
+                            for key in buttons:
+                                buttons[key].draw(c.screen)
                             c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))      
                             show_result(c,positions,buttons,task,spinning=True)
-                            #c.press_sound.play()
                             buttons['hold1'].draw(c.screen)
                             pygame.display.update()
      
@@ -866,6 +880,9 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
                             if 'click' in buttons['hold2'].handleEvent(event):
                                 eeg_trigger(c,task,'pressed_stop_2')
                                 task['wheel2'] = True
+                                buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
+                                for key in buttons:
+                                    buttons[key].draw(c.screen)
                                 c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
                                 show_result(c,positions,buttons,task, spinning=True)
                                 #c.press_sound.play()
@@ -879,6 +896,9 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
                                 else:
                                     eeg_trigger(c,task,'pressed_stop_3_loss')
                                 task['wheel3'] = True
+                                buttons = make_buttons(c,positions,sizes,task,task['trial_stage'])
+                                for key in buttons:
+                                    buttons[key].draw(c.screen)
                                 c.screen.blit(machines[str(task['machine'])],(positions['machine']['base_x'],positions['machine']['base_y']))
                                 show_result(c,positions,buttons,task, spinning=True)
                                 #c.press_sound.play()
