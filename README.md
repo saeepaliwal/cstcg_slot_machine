@@ -1,0 +1,1 @@
+CSTCG Slot machine
