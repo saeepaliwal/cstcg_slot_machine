@@ -24,7 +24,7 @@ response_box = True
 # Initialize response box:
 if response_box: 
     if platform.system() == 'Darwin': # Mac
-        RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-142', timeout=0)
+        RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-141', timeout=0)
     elif platform.system() == 'Windows': # Windows
         RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
 
