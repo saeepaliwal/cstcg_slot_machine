@@ -26,6 +26,10 @@ class ChoiceTask():
     modes = pygame.display.list_modes()
     screen = pygame.display.set_mode(modes[3],pygame.FULLSCREEN,16)
 
+    # screen_width = 900
+    # screen_height = 600
+    # screen = pygame.display.set_mode((screen_width,screen_height))
+
     center_x = screen_width/2
     left_x = screen_width/20
     right_x = screen_width*9/10
@@ -214,7 +218,7 @@ class ChoiceTask():
     def subject_information_screen(self):
 
         self.make_banner(self.body.render("Please enter your information below",True,self.header_color))
-        question = "Name"
+        question = "PPID"
         current_string = []
         self.text_input(question + ":| " + string.join(current_string,""))
         

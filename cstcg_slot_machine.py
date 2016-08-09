@@ -23,6 +23,7 @@ c = ChoiceTask(background_color=( 20, 20, 20),
 response_box = True
 # Initialize response box:
 if response_box: 
+    
     if platform.system() == 'Darwin': # Mac
         RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-141', timeout=0)
     elif platform.system() == 'Windows': # Windows
