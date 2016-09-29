@@ -77,18 +77,27 @@ matlab_output_file = c.create_output_file(subjectname)
 
 testing = False
 
-# Initialize response box:
-response_box = True
-if response_box: 
+def establish_connection(RTB=None):
     try: 
         if platform.system() == 'Darwin': # Mac
             RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-141', timeout=0)
+            status = 1
         elif platform.system() == 'Windows': # Windows
             RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
+            status = 1
     except Exception:
-        c.blank_screen()
-        c.text_screen('Please connect the response box. I will exit in 2 seconds.', font=c.header, font_color=GOLD, valign='center', y_displacement= -45, wait_time=2000) 
-        exit()     
+        status = 0
+    return status, RTB
+
+
+# Initialize response box:
+global RTB
+while True:
+    status, RTB = establish_connection()
+    if status == 0:
+        pygame.time.wait(10)
+    else:
+        break
 
 # # Kludge for testing
 # training = False
@@ -295,6 +304,7 @@ def show_instruction(c,stage):
     c.wait_fun(5000)
 
 def process_rtb(positions,index, stage, hold_on,task=None):
+    
     fix = 50
     events = []
     event_set = False
@@ -357,7 +367,7 @@ def process_rtb(positions,index, stage, hold_on,task=None):
     return events
 
 def selector(c,task,positions,index,selector_pos):
-
+    
     if platform.system() == 'Windows':
         sel_positions=[(90,430), # loss
                (8,500), # orange
@@ -403,7 +413,7 @@ def selector(c,task,positions,index,selector_pos):
     return selector_pos, selected
 
 def get_screen_elements(c, task):
-
+   
     # Button sizes
     sizes = {}
     sizes['sw'] = c.screen_width
@@ -516,6 +526,7 @@ def display_assets(c,positions,sizes,task):
 
 
 def make_hold_buttons(c,positions,sizes,task):
+
     buttons = {}
 
     buttons['hold1'] = SlotButton(rect=(positions['hold1_x'],positions['hold_y'], sizes['sbw'],sizes['xsbh']),\
@@ -537,6 +548,7 @@ def make_hold_buttons(c,positions,sizes,task):
     return buttons
 
 def make_buttons(c,positions,sizes,task,trial_stage):
+
     buttons = {}
     if trial_stage == 'guess':
         buttons['add_five'] = SlotButton(rect=(positions['bet_5_x'],positions['bet_5_y'], sizes['sbw'],sizes['sbh']),\
@@ -682,7 +694,8 @@ def welcome_screen(c, wait_time=3000):
     c.attn_screen(attn=tnu_casino,wait_time=wait_time)
 
 def instruction_screen(c,positions,sizes):
-
+    global RTB
+   
     back_button = SlotButton(rect=(positions['gamble_x'],positions['gamble_y'], sizes['bbw'],sizes['sbh']),\
         caption="Zurueck",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
     next_button = SlotButton(rect=(positions['no_gamble_x'],positions['no_gamble_y'],sizes['bbw'],sizes['sbh']),\
@@ -738,18 +751,6 @@ def instruction_screen(c,positions,sizes):
                     else:
                         next_button.draw(c.screen)
                     pygame.display.update()
-
-def establish_connection(RTB=None):
-    try: 
-        if platform.system() == 'Darwin': # Mac
-            RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-141', timeout=0)
-            status = 1
-        elif platform.system() == 'Windows': # Windows
-            RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
-            status = 1
-    except Exception:
-        status = 0
-    return status, RTB
 
 def begin_training_screen(c):
     c.blank_screen()
@@ -814,7 +815,8 @@ def show_win_banner(c,positions,task,reward):
     c.text_screen( str(reward) + ' points gewonnen!', font=c.title, valign='top', y_displacement= -45, wait_time=task['win_banner_interval'])
 
 
-def gamble(c,task, positions, sizes, RTB=None):
+def gamble(c,task, positions, sizes):
+    global RTB
     reset = False
     while not reset:
         try: 
@@ -857,19 +859,6 @@ def gamble(c,task, positions, sizes, RTB=None):
         c.screen.blit(cards[0],(x_pos,y_pos))
         pygame.display.update()
         show_instruction(c,'5')
-
-    reset = False
-    while not reset:
-        try: 
-            RTB.reset_input_buffer()
-            reset = True
-        except: 
-            while True:
-                status, RTB = establish_connection()
-                if status == 0:
-                    pygame.time.wait(10)
-                else:
-                    break
 
     c.blank_screen()
     c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
@@ -960,7 +949,9 @@ def show_result(c,positions,buttons,task, spinning=False):
         else:
             spin_wheels(c, positions, buttons, task)
 
-def process_result(c,positions,buttons,sizes,task, RTB=None):
+def process_result(c,positions,buttons,sizes,task):
+
+    global RTB
     wait = 190
     reward = 0
    
@@ -987,7 +978,7 @@ def process_result(c,positions,buttons,sizes,task, RTB=None):
         gambled = False
         while not gambled:
             try: 
-                task = gamble(c, task, positions, sizes, RTB)
+                task = gamble(c, task, positions, sizes)
                 gambled = True
             except: 
                 while True:
@@ -1001,6 +992,8 @@ def process_result(c,positions,buttons,sizes,task, RTB=None):
     return task
 
 def individual_wheel_spin(c, positions, buttons,sizes, task):
+    global RTB
+
     reset = False
     while not reset:
         try: 
@@ -1045,10 +1038,12 @@ def individual_wheel_spin(c, positions, buttons,sizes, task):
                 buttons[key].draw(c.screen)
             pygame.display.flip()
         
+        
         key_press = []
         try: 
             key_press = RTB.read() 
         except: 
+            print "I'm breaking at line 1036"
             while True:
                 status, RTB = establish_connection()
                 if status == 0:
@@ -1165,7 +1160,9 @@ def individual_wheel_spin(c, positions, buttons,sizes, task):
                     break
 
 def spin_wheels(c, positions, buttons, task):
-    
+
+    global RTB
+
     reset = False
     while not reset:
         try: 
