@@ -19,6 +19,7 @@ import platform
 if platform.system() == 'Windows': # Windows
     from ctypes import windll
 
+
 # Define symbols
 ue = u"ü"
 ae = u"ä"
@@ -127,6 +128,7 @@ spinstopsound.set_volume(vol)
 
 # Define language
 language = 'English'
+
 
 def sigmoid(x):
     s =  1.0/(1.0 + numpy.exp(-1.0*x))
@@ -551,7 +553,7 @@ def welcome_screen(c, wait_time=3000):
     winsound.play()
     c.attn_screen(attn=tnu_casino,wait_time=wait_time)
 
-def instruction_screen(c,positions,sizes,RTB):
+def instruction_screen(c,positions,sizes):
 
     back_button = SlotButton(rect=(positions['gamble_x'],positions['gamble_y'], sizes['bbw'],sizes['sbh']),\
         caption="Zurueck",  fgcolor=c.background_color, bgcolor=RED, font=c.button)
@@ -569,7 +571,16 @@ def instruction_screen(c,positions,sizes,RTB):
     pygame.display.update()
     instructions_done = False
     while not instructions_done:
-        key_press = RTB.read() 
+        try: 
+            key_press = RTB.read() 
+        except: 
+            while True:
+                status, RTB = establish_connection()
+                if status == 0:
+                    pygame.time.wait(10)
+                else:
+                    break
+
         if len(key_press):
             key_index = ord(key_press)
             events = process_rtb(positions,key_index, 'instructions','False')
@@ -598,6 +609,19 @@ def instruction_screen(c,positions,sizes,RTB):
                     else:
                         next_button.draw(c.screen)
                     pygame.display.update()
+
+def establish_connection(RTB=None):
+    try: 
+        if platform.system() == 'Darwin': # Mac
+            RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-141', timeout=0)
+            status = 1
+        elif platform.system() == 'Windows': # Windows
+            RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
+            status = 1
+    except Exception:
+        status = 0
+
+    return status, RTB
 
 def begin_training_screen(c):
     c.blank_screen()
@@ -665,8 +689,19 @@ def show_win_banner(c,positions,task,reward):
     c.text_screen( str(reward) + ' points gewonnen!', font=c.title, valign='top', y_displacement= -45, wait_time=task['win_banner_interval'])
 
 
-def gamble(c,task, positions, sizes, RTB):
-    RTB.reset_input_buffer()
+def gamble(c,task, positions, sizes, RTB=None):
+    reset = False
+    while not reset:
+        try: 
+            RTB.reset_input_buffer()
+            reset = True
+        except: 
+            while True:
+                status, RTB = establish_connection()
+                if status == 0:
+                    pygame.time.wait(10)
+                else:
+                    break
     card_back = pygame.image.load('./images/symbols_card_back.png').convert_alpha()
     cards = []
     cards.append(pygame.image.load('./images/symbols_card1.png').convert_alpha())
@@ -698,7 +733,19 @@ def gamble(c,task, positions, sizes, RTB):
         pygame.display.update()
         show_instruction(c,'5')
 
-    RTB.reset_input_buffer()
+    reset = False
+    while not reset:
+        try: 
+            RTB.reset_input_buffer()
+            reset = True
+        except: 
+            while True:
+                status, RTB = establish_connection()
+                if status == 0:
+                    pygame.time.wait(10)
+                else:
+                    break
+
     c.blank_screen()
     c.make_banner(c.title.render("Doppelt oder nichts?", True, GOLD))
     gamble_button.draw(c.screen)
@@ -712,7 +759,15 @@ def gamble(c,task, positions, sizes, RTB):
     pygame.time.set_timer(CARD, 1000)
     while not decided and time_elapsed < 3:
         time_elapsed = int(round(time.time()-start_time))
-        key_press = RTB.read() 
+        try: 
+            key_press = RTB.read() 
+        except: 
+            while True:
+                status, RTB = establish_connection()
+                if status == 0:
+                    pygame.time.wait(10)
+                else:
+                    break 
         if len(key_press):
             key_index = ord(key_press)
             events = process_rtb(positions,key_index, 'gamble',task['wheel_hold_buttons'])
@@ -779,7 +834,7 @@ def show_result(c,positions,buttons,task, spinning=False):
         else:
             spin_wheels(c, positions, buttons, task)
 
-def process_result(c,positions,buttons,sizes,task, RTB):
+def process_result(c,positions,buttons,sizes,task, RTB=None):
     wait = 190
     reward = 0
    
@@ -803,12 +858,34 @@ def process_result(c,positions,buttons,sizes,task, RTB):
     task['winloss'][task['trial']] = reward
 
     if int(task['result_sequence'][task['trial']][4]) == 1:
-        task = gamble(c, task, positions, sizes, RTB)
+        gambled = False
+        while not gambled:
+            try: 
+                task = gamble(c, task, positions, sizes, RTB)
+                gambled = True
+            except: 
+                while True:
+                    status, RTB = establish_connection()
+                    if status == 0:
+                        pygame.time.wait(10)
+                    else:
+                        break
 
     task = update_account(c,positions, sizes, task)
     return task
 
-def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
+def individual_wheel_spin(c, positions, buttons,sizes, task,RTB=None):
+        
+    try: 
+        RTB.reset_input_buffer()
+    except: 
+        while True:
+            status, RTB = establish_connection()
+            if status == 0:
+                pygame.time.wait(10)
+            else:
+                break
+
     pygame.event.clear()    
     wait = task['inter_wheel_interval']
     lag = 10
@@ -840,8 +917,17 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
             for key in buttons:
                 buttons[key].draw(c.screen)
             pygame.display.flip()
-            
-        key_press = RTB.read() 
+        
+        try: 
+            key_press = RTB.read() 
+        except: 
+            while True:
+                status, RTB = establish_connection()
+                if status == 0:
+                    pygame.time.wait(10)
+                else:
+                    break 
+ 
         if len(key_press):
             key_index = ord(key_press)
             events = process_rtb(positions,key_index, 'pull', task['wheel_hold_buttons'], task)
@@ -939,6 +1025,17 @@ def individual_wheel_spin(c, positions, buttons,sizes, task,RTB):
     spinsound.stop()
 
 def spin_wheels(c, positions, buttons, task):
+    
+    try: 
+        RTB.reset_input_buffer()
+    except: 
+        while True:
+            status, RTB = establish_connection()
+            if status == 0:
+                pygame.time.wait(10)
+            else:
+                break
+
     wait = 300
     pygame.event.clear()    
     lag = 10
