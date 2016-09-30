@@ -100,7 +100,7 @@ while True:
         break
 
 # # Kludge for testing
-# training = False
+training = False
 # testing = True
 
 pygame.mouse.set_visible(False)
@@ -1327,7 +1327,7 @@ def eeg_trigger(c,task,stage):
 
     if platform.system() == 'Windows':
         port = windll.inpoutx64
-        address = 45072
+        address = 40976
 
     if not task['training']:
         # Set value
