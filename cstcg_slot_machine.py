@@ -100,7 +100,7 @@ while True:
         break
 
 # # Kludge for testing
-training = False
+#training = False
 # testing = True
 
 pygame.mouse.set_visible(False)
@@ -135,7 +135,10 @@ else:
         # Block order
         with open ('./traces/CSTCG_block_order.txt','r') as f:
            for i, line in enumerate(f):
-                if i == subject_num-1:
+                aa = line.split('_')
+                bb = aa[1].split(',')
+                this_num = int(bb[0])
+                if this_num == subject_num:
                     block_order = map(int, line.split(',')[1:5])
                     break
     for b in block_order:
