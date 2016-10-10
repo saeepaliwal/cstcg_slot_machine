@@ -66,16 +66,18 @@ if task_stage[0] == 'left':
 elif task_stage[0] == 'right':
     training = False
 
+testing = False
 c.blank_screen()
 (subjectname) = c.subject_information_screen()
 subject = subjectname.replace(" ","")
 if subjectname.find('_') >= 0:
     subject_num = int(subjectname.split('_')[1])
-else:
+elif subjectname == 'test':
+    testing = True
     subject_num = 0
+else:
+    subject_num = int(subjectname)
 matlab_output_file = c.create_output_file(subjectname)
-
-testing = False
 
 def establish_connection(RTB=None):
     try: 
@@ -98,10 +100,6 @@ while True:
         pygame.time.wait(10)
     else:
         break
-
-# # Kludge for testing
-#training = False
-# testing = True
 
 pygame.mouse.set_visible(False)
 currency = 'points'
