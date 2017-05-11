@@ -80,9 +80,16 @@ else:
 matlab_output_file = c.create_output_file(subjectname)
 
 def establish_connection(RTB=None):
+    nowstr = strftime("%Y%m%d", localtime()) 
+    sysfile = './syslog/syslog_' + nowstr + '.txt'
+    syslog = open(output_file, 'a')
+    syslog.write('The system encountered an error at ' + repr(time.time()) + '\n')
+
     status = 0
     try:
         RTB.close()
+        syslog.write('Close serial port at ' + repr(time.time()) + '\n')
+
     except:
         print 'RTB is already closed'
 
@@ -90,17 +97,27 @@ def establish_connection(RTB=None):
         try: 
             if platform.system() == 'Darwin': # Mac
                 RTB = serial.Serial(baudrate=115200, port='/dev/tty.usbserial-141', timeout=0)
+                syslog.write('Opened serial port on Mac at ' + repr(time.time()) + '\n')
                 status = 1
             elif platform.system() == 'Windows': # Windows
                 RTB = serial.Serial(baudrate=115200, port='COM4', timeout=0)
+                syslog.write('Opened serial port on Windows at ' + repr(time.time()) + '\n')
                 status = 1
         except Exception:
             pygame.time.wait(10)
+
+    syslog.close()
     return RTB
 
 
 # Initialize response box:
 global RTB
+nowstr = strftime("%Y%m%d", localtime()) 
+sysfile = './syslog/syslog_' + nowstr + '.txt'
+syslog = open(output_file, 'w+')
+syslog.write('Trying to make connection to port \n')
+syslog.close()
+
 RTB = establish_connection()
 
 
